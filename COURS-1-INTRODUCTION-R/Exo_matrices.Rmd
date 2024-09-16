@@ -1,0 +1,117 @@
+
+---
+title: "Manipulation de Données - HousesNY"
+author: "Nolan Cacheux"
+date: "2024-09-16"
+output: html_document
+---
+
+```{r}
+# Charger la bibliothèque et le jeu de données
+library("Stat2Data")
+data("HousesNY")
+```
+
+## Préparer le dataset
+
+```{r}
+# Affecter le jeu de données à une nouvelle variable
+maisons_prix_NY = HousesNY
+
+# Renommer les colonnes en français
+colnames(maisons_prix_NY) = c("prix", "chambres", "salles_de_bain", "taille", "acres")
+
+maisons_prix_NY
+```
+
+## Conversion des unités
+
+```{r}
+# Conversion des pieds carrés en m² pour la colonne "taille"
+maisons_prix_NY$taille = maisons_prix_NY$taille * 0.092903*1000
+
+# Conversion des acres en m² pour la colonne "acres"
+maisons_prix_NY$acres = maisons_prix_NY$acres * 4046.86
+
+#Conversion du prix (dollar -> euros)
+maisons_prix_NY$prix = maisons_prix_NY$prix *1000 *0.9
+
+maisons_prix_NY
+```
+
+## Transformer le Data Frame en Matrice
+
+```{r}
+maisons_prix_NY_matrice = as.matrix(maisons_prix_NY)
+
+# Affichage
+head(maisons_prix_NY_matrice)
+```
+## Les opérations sur les matrices
+
+### 1. Quel est le prix moyen des maisons ?
+
+```{r}
+# Calcul du prix moyen
+prix_moyen = mean(maisons_prix_NY$prix)
+prix_moyen
+```
+
+### 2. Quel est le prix de la maison le moins cher ? Quelles sont les caract´eristiques de cette maisons ?
+
+
+```{r}
+# Prix minimum
+prix_min = min(maisons_prix_NY$prix)
+
+# Caractéristiques
+maison_moins_chere = maisons_prix_NY[maisons_prix_NY$prix == prix_min, ]
+maison_moins_chere
+```
+
+### 3. Quel est le prix de la maison la plus cher ?Quelles sont les caracteristiques de cette maison ?
+
+
+```{r}
+# Prix maximum
+prix_max = max(maisons_prix_NY$prix)
+
+# Caractéristiques 
+maison_plus_chere = maisons_prix_NY[maisons_prix_NY$prix == prix_max, ]
+maison_plus_chere
+```
+
+### 4. Afficher toutes les maisons dont le prix est inferieur a 100000 euros ? Quel est leur nombre ?
+
+```{r}
+maisons_moins_100k = maisons_prix_NY[maisons_prix_NY$prix < 100000, ]
+
+# Affichage des maisons
+maisons_moins_100k
+
+# Nombre de maisons
+nombre_maisons_moins_100k = nrow(maisons_moins_100k)
+nombre_maisons_moins_100k
+```
+### 5. Afficher les maisons qui ont 3 salles de bain ?
+
+```{r}
+maisons_3_sdb = maisons_prix_NY[maisons_prix_NY$salles_de_bain == 3, ]
+maisons_3_sdb
+```
+### 6. Quel est le prix moyen, le nombre de chambre moyen, la taille moyenne et la superficie moyennes des maisons avec 3 salles de bain ?
+
+```{r}
+# Calcul des statistiques pour les maisons avec 3 salles de bain
+prix_moyen_3_sdb = mean(maisons_3_sdb$prix)
+chambres_moyenne_3_sdb = mean(maisons_3_sdb$chambres)
+taille_moyenne_3_sdb = mean(maisons_3_sdb$taille)
+acres_moyenne_3_sdb = mean(maisons_3_sdb$acres)
+
+# Affichage 
+list(
+  prix_moyen = prix_moyen_3_sdb,
+  chambres_moyenne = chambres_moyenne_3_sdb,
+  taille_moyenne = taille_moyenne_3_sdb,
+  acres_moyenne = acres_moyenne_3_sdb
+)

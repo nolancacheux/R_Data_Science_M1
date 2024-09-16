@@ -1,0 +1,447 @@
+---
+title: "R Programming, Part 1"
+author: "Kedge/Junia"
+date: "4/22/2021"
+output: html_document
+---
+
+In this first part of the course, we will understand the R language. First, we will explore the types of data that we can meet such as real numbers, characters, booleans...and understand the notion of variable.
+Secondly, we will work on data structures, arrays (vectors) and matrices with the corresponding instructions.
+
+
+# Data class and type
+To begin,  we will talk about the numeric data class that represents numbers and digits in R.
+## Numerics
+```{r}
+class(6.5)
+class(6)
+typeof(6.5)
+as.integer(6.5)
+typeof(as.integer(4))
+#typeof(as.integer(6.5))
+```
+
+
+typeof (6.5) informs us that they are doubles.
+If we want to transform this number into an int then we have to use as.integer (6.5) which returns us 6. working with integers or integrating does not take up much space in your machine's memory.
+However, in this course, we will use the doubles.
+
+## Characters
+```{r}
+class("hello")
+typeof("hello")
+typeof("v")
+```
+
+## Booleans 
+Another class that we will discuss later is the Boolean class also called logical in R.
+This is true or false for example
+```{r}
+44>23
+44<23
+```
+
+## Variables
+A variable will allow us to store information.
+For example, when we need to get a file containing data, we will store it in a variable. So we can manipulate all of this data just by using a variable.
+
+A variable will take several types of data as we saw earlier.
+```{r}
+my_variable = 4
+my_variable
+typeof(my_variable)
+class(my_variable)
+```
+
+```{r}
+my_caractere ="hello"
+my_caractere
+typeof(my_caractere)
+class(my_caractere)
+```
+
+
+```{r}
+my_booleen= TRUE
+
+my_booleen
+typeof(my_booleen)
+bool= 4<2
+bool
+```
+
+```{r}
+Booleen = TRUE
+```
+
+# Arithmetic operations
+What you need to know is that R works like a calculator
+```{r}
+4+6
+
+var1 = 100 ## new variable named var1 which takes the value 100
+var2 = 4 ## var2 takes the value 4
+var1 + var2 ## addition between variables
+var3 = var1 + var2 # assign the result of the addition to a new variable var3
+var3 ## display of var3
+var1 * var2 ## multiplication
+var1 / var2 ## division
+var1 %% var2 ## modulo operation (remainder of the division between var1 and var2)
+
+```
+
+# Simple data structure
+## Vectors
+A vector in R has the same definition as in linear algebra.
+That is to say that it is a variable representing one or more variables.
+If you are familiar with other programming languages, it's like an array of values.
+The vector is represented by a variable where all the values are stored.
+Earlier, we declared a variable "var1". This also represents a vector in R.
+
+To create a vector we will use the function c for concatenation
+```{r}
+vec1= c(1,2,3)
+vec1
+typeof(vec1)
+class(vec1)
+
+```
+If we want a character type vector
+
+```{r}
+c("a","b","c")
+car1=c("a","b","c")
+car1
+```
+You cannot mix data types in a vector.
+The vector, like the variable, meets the typing criteria seen previously.
+If we want to mix different types, for example, well let's experiment:
+
+
+```{r, echo=TRUE}
+vec2=c(3,"a",4.5)
+vec2
+typeof((vec2))
+```
+We note that by default, it is the type "character" which takes defined.
+
+## Operations on vectors:
+In this part, we are interested in arithmetic and other operations on vectors.
+Other functions allow to generate vectors for example
+```{r, echo=TRUE}
+# with the seq function, two ways to write
+my_vector1= seq(from=1, to=10)
+my_vector1
+my_vector2=seq(1:10)
+my_vector2
+```
+
+
+```{r, echo=TRUE}
+# with the rep function, two ways to write
+my_vector3= rep(10, times = 10)
+my_vector3
+my_vector4 = rep(10,10)
+my_vector4
+```
+To increase the values of the vector my_vector1 by 1
+
+```{r, echo =TRUE}
+my_vector1
+my_vector1+1
+my_vector1
+```
+To multiply the values of the vector my_vector1 by 2
+
+
+```{r, echo=TRUE}
+my_vector1
+my_vector1*2
+
+```
+
+
+to do multiplication operations between two vectors
+```{r, echo=TRUE}
+my_vector1
+my_vector2 = seq(from=6, to= 15)
+my_vector2
+my_vector1*my_vector2
+```
+
+
+
+Same for performing additions between vectors
+```{r}
+my_vector1
+my_vector2
+my_vector1+my_vector2
+```
+
+To perform a subtraction
+```{r}
+my_vector1
+my_vector2
+my_vector1 - my_vector2
+```
+
+
+To divide between vectors
+```{r}
+my_vector1
+my_vector2
+my_vector1 / my_vector2
+```
+
+To concatenate two vectors, just do the following operation
+```{r}
+my_vector1
+my_vector3
+my_vector5=c(my_vector1,my_vector3)
+my_vector5
+
+```
+
+
+## The different functions for manipulating vectors:
+In this section we will focus on existing and very useful functions in R which will allow us to manipulate vectors:
+```{r}
+length(my_vector1)  ## vector size
+
+```
+The length function takes a vector as argument.If we want for example to sort a vector from the smallest value to the largest value:
+
+```{r}
+my_vector6 = c(49, 24, 2, 87, 6, 10, 33, 56, 88, 17) ## creation of a new vector
+sort(my_vector6) ## the sort function allows you to sort the values inside a vector.
+
+```
+
+If we want to create a new vector with the sorted values of the my_vector6 vector then
+```{r}
+mon_vecteurTrieC = sort(my_vector6)
+mon_vecteurTrieC
+```
+
+Now if we want to sort descending, we just need to use the same output function with an option which is decreasing = TRUE:
+```{r}
+sort(my_vector6, decreasing= TRUE)
+
+```
+If we can also create a new variable or object to which we can assign this vector sorted in descending order:
+
+```{r}
+mon_vecteurTrieD=sort(my_vector6, decreasing = TRUE)
+mon_vecteurTrieD
+```
+
+To see the ranks of each value in my array, we can use the rank function:
+
+```{r}
+my_vector6
+rank(my_vector6) 
+rank(mon_vecteurTrieC)
+rank(mon_vecteurTrieD)
+```
+## Browse vectors
+ 
+If, for example, we want to know the value at position 2 of the vector my_vector6
+ 
+```{r}
+my_vector6
+my_vector6[2]
+```
+ 
+If we now want to display the first 3 values of the vector:
+```{r}
+my_vector6 [1: 3] ## the 1: 3 sequence indicates that I want the values from position 1 to position 3
+my_vector6 [3: 7] ## displays values from position 3 to position 7
+```
+
+If we now wish to access positions 3, 5, 9 of the vector
+```{r}
+my_vector6
+my_vector6[3]
+my_vector6[c(3,5,9)]
+```
+
+If you want to retrieve all the values greater than 30
+```{r}
+my_vector6
+superior = my_vector6> 30 ## creation of a new vector
+superior ## here we can see that when it is a value greater than 30, it displays TRUE and when it is a value less than 30, it displays FALSE
+my_vector6[superior] ## now, showing all values greater than 30
+```
+
+Ici, nous allons nous interesser à certaines fonctions qui permettent de faire certaines opérations sur les vecteurs: 
+```{r}
+my_vector6
+sum (my_vector6) # sum of all vector values
+mean (my_vector6) # mean of vector
+min (my_vector6) # know the smallest value of the vector
+max (my_vector6) # know the greatest value of the vector
+median (my_vector6)
+summary (my_vector6) # informs us of vector distributions
+
+```
+
+## Simple statistics on a vector
+In this part, we are going to review the set of functions that we have seen previously by illustrating this with a simple exercise that speaks to everyone, that is to say the notes in a class.
+Suppose we have math scores for a class of 25 students and we want to know the different statistics. In this case, it means knowing the average, the worst score, the highest score, those who are below the average, those who are above the average, etc.
+
+For this, we will use a runif function, which will generate values randomly between a min and a max.
+Then we want to round these values so that they are more integer type.
+
+```{r}
+grade_math = runif (25, min = 1, max = 20) # randomly generate 25 values between 1 and 20
+grade_math # in this vector we can see that these are random values with lots of decimal places.
+grade_math = round(grade_math, digits = 0) # here we are going to round the numbers generated by runif to any number after the decimal point with the round function.
+grade_math
+```
+
+
+Now we are going to give names to the students
+```{r}
+
+names(grade_math) = c("Elise", "Leon","Sully", "Anouck","Baptiste", "Thibault", "Paul", "Zoé", "Zély", "Amandine", "Antoine", "Charles", "Lilou", "Chloé", "Daphnée", "Nicolas", "Maxcence", "Auguste", "Mathurin", "Sarah", "Lili", "Marion","Naomie","Raphael", "Flora")
+grade_math
+
+```
+
+
+
+```{r}
+typeof(grade_math)
+class(grade_math)
+```
+
+
+## Edit vector values
+```{r}
+grade_math[3]= 14
+grade_math["Baptiste"]= 13
+names(grade_math[2])=c("Mikael")
+grade_math
+```
+
+
+# Matrices
+It is a table with two dimensions.
+```{r}
+vector1= sample(1:20, 12)
+vector1
+matrix(vector1,nrow=3, ncol = 4) 
+
+
+```
+
+
+```{r}
+grade_class=runif(15, min=1, max=20)
+grade_class=round(grade_class, digits = 0)
+grade_class= matrix(grade_class, ncol = 3, nrow = 5)
+grade_class
+```
+
+We can also create character type matrices
+```{r}
+ma_matrice2=matrix(c("a", "b", "c","d","e","f","g","h","i"), nrow = 3, ncol = 3)
+ma_matrice2
+```
+
+In order to name the rows and columns of the matrices
+```{r}
+colnames(grade_class)= c("Biology", "Maths", "Physical")
+rownames(grade_class)=c("Elise", "Leon","Sully", "Anouck","Baptiste")
+grade_class
+```
+
+[LIGNE, COLONNE] toujours !
+
+```{r}
+grade_class [, "Biology"] ## displays the first column
+grade_class [, 1] ## this instruction is equivalent to the previous one
+
+```
+
+```{r}
+grade_class ["Sully",] ## displays the 3rd line
+grade_class [3,] ## instruction equivalent to the previous one
+```
+If we want to see Sully's note in Physical, we have two ways:
+```{r}
+grade_class["Sully", "Physical"]
+grade_class[3,3] ##instruction equivalent to the previous one
+
+grade_class["Elise","Maths"]
+grade_class[1,2] ## Elise's grade in Maths
+
+```
+
+To access Elise's Maths and Physical notes
+```{r}
+grade_class["Elise", c("Maths", "Physical")]
+grade_class[1, c(2,3)]
+grade_class["Elise", 2:3]
+```
+
+We can do the same actions at row level
+For example see the notes of Anouck and Baptiste in Biology
+
+```{r}
+grade_class[c("Anouck","Baptiste"), "Biology"]
+
+```
+
+## Modify the elements of a matrix
+```{r}
+grade_class[c("Anouck","Baptiste"), "Biology"]= c(15, 17)
+grade_class[c("Anouck","Baptiste"), "Biology"]
+```
+
+## Matrix operations
+In this example, we will use the grade_class matrix and we will create a new matrix that we will name matrix_ope
+```{r}
+matrice_ope = c(rep(0.25, times = 5), rep(0.5, times = 5), rep(0.75, times = 5)) # the rep function allows you to repeat a number in times = 5 times
+matrice_ope
+matrice_ope=matrix(matrice_ope, nrow = 5, ncol = 3) # transformation of the vector into a matrix.
+matrice_ope
+```
+
+## Addition of two matrices
+```{r}
+grade_class + matrice_ope
+```
+
+## Multiplication of two matrices
+In R it is not a matrix calculation where it is a question of multiplying the first row of the first matrix by the first column etc. It is very basic, first column of the first matrix multiplied by first column of the second matrix.
+
+```{r}
+grade_class
+matrice_ope
+grade_class * matrice_ope
+```
+
+Likewise for the division
+```{r}
+grade_class
+matrice_ope
+grade_class/matrice_ope
+```
+##  The subtraction of two matrices
+```{r}
+grade_class
+matrice_ope
+grade_class-matrice_ope
+```
+ 
+## Some additional functions on matrices
+
+```{r}
+colSums(grade_class)
+rowSums(grade_class)
+
+colMeans(grade_class)
+round(rowMeans(grade_class),digits = 2)
+```
+

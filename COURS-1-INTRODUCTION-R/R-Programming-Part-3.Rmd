@@ -1,0 +1,397 @@
+---
+title: "R Programming, Part 3"
+author: "Kedge/Junia"
+date: "4/23/2021"
+output: html_document
+---
+
+In this part, we will see how to handle datasets more efficiently.
+In the previous sheets, we used the iris dataset which is small with 5 modalities and 150 rows. Easy to explore with For, wich ...
+However, in the real life, data on the size of the iris dataset is scarce.
+The datasets are very large, and the for and wich statements may delay compilation and make your program very slow.
+It is necessary to use other much more optimized tools.
+
+# Apply
+The function apply, takes 3 main arguments : 
+apply(X, MARGIN,FUN)
+X: data frame ou matrice
+MARGIN = 1 if it's the lines, = 2 if it's the columns. If it's lines + columnes =c(1,2).
+FUN= fonction(mean, summary, sum...)
+
+We will use to illustrate the iris dataset.
+
+```{r}
+data("iris")
+head(iris)
+```
+
+Remember, before, you had to redefine a new data frame to explore quantitative data (without the 5th column of the iris dataset which indicates the type of the species)
+With Apply it's different.
+Let's also imagine that we want to calculate the average of each category or each column:
+
+```{r}
+apply(iris[,-5], 2, mean)
+```
+
+```{r}
+apply(iris[,-5], 2, summary)
+```
+
+If we now want to define our own function, on the whole dataset:
+Here we will create a function that calculates the size of a vector. It takes a vector as argument, and it returns its size using the length function.
+We must compile this piece of code which will generate a file
+
+```{r}
+
+nombre_valeur_sup_5 = function(vecteur){
+  length(vecteur[vecteur>5])
+}
+```
+
+Now that we have created my own function, I can apply it to my Iris dataset.
+```{r}
+apply(iris[,-5],2,nombre_valeur_sup_5)
+```
+
+What we hardly notice here is that the number of individuals with a sepal length> 5 is 118, those with a sepal width> 5 is 0, those with a petal length> 5 is 42 and those with a petal width> 5 is 0.
+
+Apply is a powerful function, however, there is more power than the Apply() function
+
+# The by() function 
+
+Two other functions that allow you to make statistics by modality. Remember, in the Iris dataset, the Species vectors
+
+```{r}
+head(iris)
+```
+
+Let's imagine that we want to make a summary type statistic by category, or by qualitative variable, we are going to define a new function by ():
+by (X, INDICES, FUN)
+X: represents a data frame
+INDICES: represents the group or the column or the modality by which we want to make the subset of data, for example iris $ Spices.
+FUN: it is our function that we want to apply to the subset of data. In our example below it will be summary.
+
+
+```{r}
+by(iris, iris$Species, summary)
+```
+
+As can be seen, we obtained a specific statistic for each group. The back of the by () function is not a data frame but the list type data structure. We are not going to study this type of structure. They have the merit of existing and they are very powerful when you have a good command. But mastering data frames is largely sufficient for a good data scientist.
+
+Another example with the by () function is the use of pierson's cor () correlation function (we will study this in the course of stat).
+As cor applies only to numerical, quantitative data, it is necessary to delete the 5th column to execute it otherwise we have an error during the compilation.
+For information, the function cor () caps the variables two by two. This matrix tells us which variables are the most correlated with each other. The closer it is to 1, the more correlation there is
+When the values are less than 0.6, it indicates that there is no correlation.
+
+```{r}
+by(iris[,-5], iris$Species, cor)
+```
+
+If we want for example to apply the mean function on the subsets.
+```{r}
+by(iris[,-5], iris$Species, mean)
+```
+
+This will not work since mean only runs on vectors.
+This is one of the disadvantages of the by () function. Another function that goes with by () is the aggregate () function.
+
+# The aggregate() function  
+aggregate(X, BY, FUN)
+X : un data frame 
+By est le sous ensemble sur lequel nous vous executer une fonction FUN( is the subset on which we execute a FUN function for you)
+FUN : notre fonction 
+
+```{r}
+aggregate(iris[,-5], as.data.frame(iris$Species), mean)
+```
+
+aggregate allows to process the data frame column by column.
+It is important to transform iris $ Spices into a data frame at the risk of having an error.
+As we can see, we have a table where each group has its average column by column.
+This is one of the power of the aggregate () function.
+
+
+# The dyplr package
+It is one of the most powerful package on R. It is very optimized and allows very advanced data manipulation in a very simple way. Its advantage is that it has a very simple and easy to use grammar. It is also the fastest (for those who are into the performance of algos ;-)).
+
+To start you have to install and load the package.
+
+```{r}
+#install.packages("dplyr")
+```
+
+You have to load the library each time.
+```{r}
+library(dplyr)
+```
+
+For information, dplyr can handle all types of data, but it also has its own data structure, it is the tibble type.
+
+We are going to take the iris dataset which is of data frame type and we are going to transform it into tibble to see the difference between the two types of data.
+
+
+```{r}
+data.iris=as_tibble(iris)
+
+```
+
+If we display this dataset here is what we notice:
+```{r}
+data.iris
+```
+
+The head is done automatically for the first 10 lines.
+Under each column, we have the information on the data type dbl for double and fctr for factor.
+
+## Select Function : select columns
+
+Imagine that we want to select a few columns.
+As we are still going to use the iris dataset, we are going to rename data.iris (which is a tibble type) to iris,
+
+
+```{r}
+iris= data.iris
+iris
+
+```
+
+as we can see the class of iris now is tibble.
+```{r}
+class(iris)
+```
+
+If you want to select only the columns containing information on Sepals with the type of "Species" fleux, you just have to indicate them in the select function.
+
+```{r}
+select(iris, Sepal.Length, Sepal.Width, Species)
+```
+
+Another way to do this is to select a set of columns indicating the first and the last with the:
+
+```{r}
+select(iris, Sepal.Length :Petal.Length)
+```
+
+
+As we saw previously, if we want to do statistics on quantitative values, it is preferable to remove the qualitative columns.
+Nothing so simple with select, it was enough to put a - before the name of the column.
+
+```{r}
+select(iris, -Species)
+```
+
+If you want to select columns that start for example with the word 
+```{r}
+select(iris, starts_with("Sepal"))
+```
+
+Now, the columns that end with the character string "Width"
+
+```{r}
+select(iris, ends_with("Width"))
+```
+
+If you want columns that contain a certain string of characters.
+
+
+```{r}
+select(iris, contains("al"))
+```
+
+## filter() : filter on individuals.
+In this section we will explore filter () with which we can filter on rows (individuals).
+
+First example concerns a filter with Sepal.length> = 5 and Sepal.width> = 2
+Here, it tells me that we have 128 individuals with the requested filter.
+```{r}
+filter(iris, Sepal.Length >=5, Sepal.Width>=3)
+```
+
+Second example: it is with the between function where I am able to select individuals who are between 2 values.
+```{r}
+filter(iris, between(Sepal.Length,4,7))
+```
+
+Another way to write it too
+```{r}
+filter(iris, Sepal.Length>=4, Sepal.Length <=7)
+```
+
+Third example:
+If you want to make a filter with the data type setosa.
+```{r}
+filter(iris, Species=="setosa")
+```
+
+If, on the contrary, we do not want to have the type setosa: we use the different operator !=
+```{r}
+filter(iris, Species!="setosa")
+```
+
+Still in the filter on the Species modality, we will find the% in% operator which allows you to select the desired modalities:
+```{r}
+filter(iris, Species %in% c("setosa", "virginica"))
+```
+another way to write it with the operator | or. This is for information,
+```{r}
+filter(iris, (Species =="setosa" | Species =="virginica"))
+```
+
+As you have noticed, if you want to make filters on one or two columns (or more) you must always indicate the name of the variables.
+Now if we want for example a filter not on one or two (or more variables) but all the variables.
+We will therefore introduce the filter_all function
+```{r}
+filter_all(iris[,-5], any_vars(.>5))
+```
+
+any_var () is the equivalent of the logical operator or |.
+Let's go back to the previous line using the where operator.
+
+```{r}
+filter(iris, (Sepal.Length >5 |Sepal.Width >5|Petal.Length>5|Petal.Width >5))
+```
+
+Now, if we want to have filtered on all the variables and select only individuals with characteristics> 4
+
+```{r}
+filter_all(iris[,-5],all_vars(.>4))
+```
+
+There are no individuals with these characteristics. In this case, let us look for individuals with modalities> 2
+```{r}
+filter_all(iris[,-5],all_vars(.>2))
+```
+
+## The operator Pipe %>%
+t's a super powerful verb or function.
+Imagine a locomotive of functions (or verbs in the language of the creator of the dplyr package) the output of the first is the input of the second and so on until the last function of the pipe. Let's start with a simple example
+Here iris%>% indicates the dataset that is the input to the next select function.
+```{r}
+select(iris,Sepal.Length, Sepal.Width, Species) 
+iris %>%
+select(Sepal.Length, Sepal.Width, Species)
+```
+
+Now we want to select the set of variables of iris but without the Species column and then apply a filter on the individuals which are characteristics> 2.
+No need to indicate the names of the dataset since it is input to the first function.
+```{r}
+iris %>%
+select(-Species) %>%
+filter_all(all_vars(.>2))
+```
+
+## Arrange: order values in a tibble.
+First way to order a variable for example Sepal.Length
+
+```{r}
+iris %>%
+  arrange(Sepal.Length)
+```
+
+If I want descending order on the same variable:
+
+```{r}
+iris %>%
+  arrange(desc(Sepal.Length))
+```
+
+Other illustration with arranged in a pipe.
+
+```{r}
+iris %>%
+select(Sepal.Length, Sepal.Width, Species) %>%
+filter(Species=="setosa")%>%
+arrange(Sepal.Length)
+
+```
+
+
+## Summarise : statistical summary
+
+We have defined a new variable, moyen_sepal.length which receives the average of the Sepal.Length variable.
+```{r}
+iris%>%
+  summarise(moyenne_sepal.length = mean(Sepal.Length))
+```
+
+
+Other, way of doing:
+What we can do here is calculate an average, a min and a max and quantify the individuals with the function n ().
+
+```{r}
+iris%>%
+  summarise(moyenne_sepal.length = mean(Sepal.Length), minimum_sepal.length = min(Sepal.Length),maximum_sepal.length=max(Sepal.Length), total=n())
+```
+
+This way of writing is not practical, imagine that we have a dataset with a large number of variables on which we want to do statistics.
+```{r}
+iris%>%
+  summarise(moyenne_sepal.length = mean(Sepal.Length), minimum_sepal.length = min(Sepal.Length),moyenne_petal.length = mean(Petal.Length), minimum_petal.length = min(Petal.Length))
+```
+
+To do so, we will introduce the summarize_each function
+```{r}
+iris%>%
+summarise_each(funs(mean, min), Petal.Length, Sepal.Length)
+```
+
+
+##  group_by() split groups of variables
+
+The group_by () function is used to group the data according to the specific parameters on the variables
+```{r}
+iris %>%
+  group_by(Species)%>%
+   summarise(moyenne_sepal.length = mean(Sepal.Length), minimum_sepal.length = min(Sepal.Length),maximum_sepal.length=max(Sepal.Length), total=n())
+```
+
+```{r}
+iris %>%
+  group_by(Species)%>%
+   summarise_each(funs(mean, min), Petal.Length, Sepal.Length)
+```
+
+
+```{r}
+iris %>%
+  group_by(Species)%>%
+   summarise_each(funs(mean, min, max), Sepal.Length)
+```
+
+```{r}
+iris %>%
+   group_by(Species)%>%
+  filter(Petal.Length<3) %>%
+  summarise(n())
+```
+
+## mutate() :Add, delete, modify rows or columns
+If we want to add one more variables in the iris array.
+
+```{r}
+iris%>%
+  mutate(somme_longueur_largeur_Petal= Petal.Length+Petal.Width, somme_longueur_largeur_Sepal= Sepal.Width+Sepal.Length)
+```
+
+##  Remove one or two variables
+Imagine that we want to delete the species variable
+
+```{r}
+iris %>%
+  mutate(Species=NULL)
+```
+
+## Modify the values of a variable
+
+```{r}
+iris %>%
+  mutate(Sepal.Length= Sepal.Length*2)
+```
+
+
+
+
+
+
+
+

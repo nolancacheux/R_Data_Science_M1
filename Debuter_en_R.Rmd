@@ -1,0 +1,501 @@
+---
+title: "Débuter avec R"
+author: "Feryal"
+date: "7 septembre 2020"
+---
+
+Un type de données représente l'organisation des données et une classe représente ce que l'on peut faire avec.
+Imaginons que nous disposons de plusieurs tiroirs chez soi, et pour bien organiser ses affaires, nous avons besoins 
+
+Pour commencer nous allons parler de la classe de données numérique qui représente les nombres et les chiffres en R.
+
+```{r}
+class(6.5)
+class(6)
+typeof(6.5)
+as.integer(6.5)
+#typeof(as.integer(6.5))
+```
+typeof(6.5) nous informera que c'est des double.
+Si nous souhaitons transformer ce nombre en intlors il faut utiliser as.integer(6.5) ce qui nous renvois 6. travailler avec des entiers ou intéger ne prend pas beaucoup de place au niveau de la mémoire de votre machine.
+Néanmoins dans ce cours, nous utiliserons les doubles. 
+
+#Chaine de caractéres: 
+
+```{r}
+class("bonjour")
+typeof("bonjour")
+typeof("v")
+```
+
+Une autre classe que nous aborderons par la suite est la classe booléenne appelé également logical en R.
+Il s'agit de vrai ou faux 
+par exemple 
+```{r}
+44>23
+44<23
+```
+
+##Variables
+Une variable va nous permettre de stocker de l'information. 
+Je m'explique, par exemple, lorsque nous devons récupérer un fichier contenant des données, nous allons les stocker dans une variable. Ainsi nous pourrons manipuler l'ensemble de ces données juste en utilisant une variable.
+
+Une variable prendra plusieurs types de données comme nous l'avions vu tout a l'heure.
+```{r}
+ma_variable = 4
+ma_variable
+typeof(ma_variable)
+class(ma_variable)
+```
+
+```{r}
+mon_caractere ="bonjour"
+mon_caractere
+typeof(mon_caractere)
+class(mon_caractere)
+```
+```{r}
+mon_booleen= TRUE
+var1="hello"
+
+mon_booleen
+typeof(mon_booleen)
+bool= 4<2
+bool
+```
+```{r}
+Booleen = TRUE
+```
+
+## opération arithmétique 
+Ce qu'il faut savoir est que R fonctionne comme une calculatrice 
+```{r}
+4+6
+
+var1= 100 ## nouvelle variable nommée var1 qui prend la valeur 100
+var2 = 4 ## var2 prend la valeur 4
+var1+var2  ## addition entre les variables
+var3 = var1+var2  # affecter le résultat de l'addition é une nouvelle variable var3
+var3 ## affichage de var3
+var1*var2  ## multiplication
+var1/var2  ##division
+var1%%var2  ## opération modulo (reste de la division entre var1 et var2)
+
+```
+## Les vecteurs 
+Un vecteur en R a la méme définition qu'en algébre linéaire. 
+C'est é dire qu'il s'agit d'une variable représentant une, ou plusieurs variables.
+Si vous étes familié avec d'autres langages de programmation, c'est comme si c'était un tableau de valeurs.
+Le vecteur est représenté par une variable oé l'ensemble des valeurs sont stockées.
+Tout a l'heure, nous avons déclaré une variable "var1". Celle ci représente également un vecteur en R.
+
+Pour créer un vecteur nous allons utiliser la fonction c pour concaténation
+```{r}
+vec1= c(1,2,3)
+vec1
+typeof(vec1)
+class(vec1)
+
+```
+Si l'on souhaite un vecteur de type caractére 
+
+```{r}
+c("a","b","c")
+car1=c("a","b","c")
+car1
+```
+On ne peut pas mélanger les types de données dans un vecteur.
+Le vecteur comme la variable, répondent aux critéres de typage vu précédemment.
+Si on souhaite mélanger différents types, par exemple, et bien faisons l'expérience :
+```{r, echo=TRUE}
+vec2=c(3,"a",4.5)
+vec2
+typeof((vec2))
+```
+On constate que par défaut, c'est le type "character" qui prend défini.
+
+## Les opérations sur les vecteurs :
+Dans cette partie, nous nous interessons aux opérations arithmétiques et autres sur les vecteurs.
+D'autres fonctions permettent de générer des vecteurs par exemple 
+```{r, echo=TRUE}
+## avec la fonction seq, deux faéons d'écrire
+mon_vecteur1= seq(from=1, to=10)
+mon_vecteur1
+mon_vecteur2=seq(1:10)
+mon_vecteur2
+
+## avec la fonction rep, également deux faéons d'écrire 
+mon_vecteur3= rep(10, times = 10)
+mon_vecteur3
+mon_vecteur4 = rep(10,10)
+mon_vecteur4
+```
+Pour augmenter de 1 les valeurs du vecteur mon_vecteur1
+
+```{r, echo =TRUE}
+mon_vecteur1
+mon_vecteur1+1
+```
+Pour multiplier les valeurs du vecteur mon_vecteur1 par 2 
+```{r, echo=TRUE}
+mon_vecteur1
+mon_vecteur1*2
+
+```
+
+
+pour faire des opération de multiplication entre deux vecteurs
+```{r, echo=TRUE}
+mon_vecteur1
+mon_vecteur2 = seq(from=6, to= 15)
+mon_vecteur2
+mon_vecteur1*mon_vecteur2
+```
+Pareil pour effectuer des additions entre vecteurs
+```{r}
+mon_vecteur1
+mon_vecteur2
+mon_vecteur1+mon_vecteur2
+```
+Pour effectuer une soustraction 
+```{r}
+mon_vecteur1
+mon_vecteur2
+mon_vecteur1 - mon_vecteur2
+```
+Pour effectuer des division entre vecteur
+```{r}
+mon_vecteur1
+mon_vecteur2
+mon_vecteur1 / mon_vecteur2
+```
+
+Pour concaténer deux vecteurs il suffit de faire l'opération suivante 
+```{r}
+mon_vecteur1
+mon_vecteur3
+mon_vecteur5=c(mon_vecteur1,mon_vecteur3)
+mon_vecteur5
+
+```
+
+
+## Les différentes fonctions pour manipuler les vecteurs :
+Dans cette section nous allons nous intéresser aux fonctions existantes et trés utiles dans R qui nous permettrons de manipuler les vecteurs :
+```{r}
+length(mon_vecteur1)  ## la taille du vecteur
+
+```
+La fonction lenght prend en argrument un vecteur
+
+Si nous voulons par exemple trier un vecteur de la valeur la plus petite é la valeur la plus grande :
+
+```{r}
+mon_vecteur6= c(49, 24, 2, 87, 6, 10, 33, 56, 88, 17) ## création d'un nouveau vecteur
+sort(mon_vecteur6) ## la fonction sort permet de trier les valeur é l'intérieur d'un vecteur.
+
+```
+
+Si nous souhaitons créer un nouveau vecteur avec les valeurs triées du vecteur mon_vecteur6 alors 
+```{r}
+mon_vecteurTrieC = sort(mon_vecteur6)
+mon_vecteurTrieC
+```
+
+Montenant si nous souhaitons faire un tri decroissant, il suffit d'utiliser la méme fonction sort avec une option qui est decreasing = TRUE: 
+```{r}
+sort(mon_vecteur6, decreasing= TRUE)
+
+```
+Si pouvons également créer une nouvelle variable ou objet auquel nous pouvons lui affecter ce vecteur trié de faéon décroissante :
+
+```{r}
+mon_vecteurTrieD=sort(mon_vecteur6, decreasing = TRUE)
+mon_vecteurTrieD
+```
+
+Pour voir les rangs de chaque valeur dans mon tableau, nous pouvons utiliser la fonction rank : 
+
+```{r}
+rank(mon_vecteur6) 
+rank(mon_vecteurTrieC)
+rank(mon_vecteurTrieD)
+```
+ ## Parcourir les vecteurs 
+ 
+ Si je souhaite par exemple connaitre la valeur au niveau de la position 2 de mon vecteur mon_vecteur6 
+ 
+```{r}
+mon_vecteur6
+mon_vecteur6[2]
+```
+ 
+Si nous souhaitons maintenant afficher les 3 premiéres valeurs du vecteur : 
+```{r}
+mon_vecteur6[1:3] ## la séquence 1:3 indique que je souhaite les valeurs de la position 1 é la position 3 
+mon_vecteur6[3:7] ## affiche les valeurs de la position 3 é la position 7
+```
+
+Si nous souhaitons maintenant acceder é des positions 3, 5, 9 du vecteur 
+```{r}
+mon_vecteur6
+mon_vecteur6[c(3,5,9)]
+```
+
+Si l'on souhaite récuper toutes les valeurs supérieures é 30 
+```{r}
+mon_vecteur6
+superieur = mon_vecteur6 >30 ## création d'un nouveau vecteur 
+superieur ## ici on pourra  voir que lorsque c'est une valeur supérieure é 30, il affiche TRUE et lorsque c'est une valeur inférieure é 30, il affiche FALSE
+mon_vecteur6[superieur] ## maintenant, affichant toutes les valeurs supérieures é 30
+```
+
+Ici, nous allons nous interesser é certaines fonctions qui permettent de faire certaines opérations sur les vecteurs: 
+```{r}
+mon_vecteur6
+sum(mon_vecteur6) # somme de toute les valeurs du vecteur 
+mean(mon_vecteur6) # moyenne du vecteur 
+min(mon_vecteur6) #connaitre la plus petite valeur du vecteur 
+max(mon_vecteur6) #connaitre la plus grande valeur du vecteur
+median(mon_vecteur6)
+summary(mon_vecteur6) # nous informe des distrbution du vecteur 
+
+```
+## Statistiques simple sur un vecteur 
+Dans cette partie, nous allons revoir l'ensemble de fonctions que nous avons vu précédemment en ulustrant cela par un excercice simple et qui parle é tout le monde c'est-é-dire les notes dans une classe.
+Supposons que nous avons des notes de mathématique pour une classe de 30 éléves et nous souhaitons connaitre les différentes statistiques. Cela signifie dans ce cas, connaitre la moyenne, la plus mauvaise note, la note la plus élevée, ceux qui sont au dessous de la moyenne, ceux qui sont au dessus de la moyenne, etc.
+
+Pour cela, nous allons utiliser une fonction runif, qui va générer des valeurs de faéons aléatoire entre un min et un max. 
+Ensuite nous souhaitons arrondir ces valeurs pour qu'elles soient plus type entier.
+
+```{r}
+note_math=runif(25, min=1, max=20) #générer de faéon aléatoire 25 valeurs entre 1 et 20 
+note_math # dans ce vecteur, nous pouvons remarquer qu'il s'agit de valeurs aléatoires avec beaucoup de chiffres aprés la virgule.
+note_math=round(note_math, digits = 0) #ici nous allons arrondir avec la fonction round les nombres générés par runif é aucun nombre aprés la virgule.
+note_math
+
+```
+Maintenant, nous allons donner des noms aux éléves 
+```{r}
+length(note_math)
+names(note_math) = c("Elise", "Leon","Sully", "Anouck","Baptiste", "Thibault", "Paul", "Zoé", "Zély", "Amandine", "Antoine", "Charles", "Lilou", "Chloé", "Daphnée", "Nicolas", "Maxcence", "Auguste", "Mathurin", "Sarah", "Lili", "Marion","Naomie","Raphael", "Flora")
+note_math
+
+```
+```{r}
+typeof(note_math)
+class(note_math)
+```
+## Modifier les valeurs de vecteur
+```{r}
+note_math[3]= 14
+```
+
+
+## Matrices 
+C'est un tableau é deux dimmensions 
+```{r}
+vecteur1= sample(1:20, 12)
+vecteur1
+matrix(vecteur1,nrow=3, ncol = 4) ##une matrice avec 
+
+
+```
+```{r}
+note_classe=runif(15, min=1, max=20)
+note_classe=round(note_classe, digits = 0)
+note_classe= matrix(note_classe, ncol = 3, nrow = 5)
+note_classe
+```
+
+Nous pouvons également créer des matrices types caractéres 
+```{r}
+ma_matrice2=matrix(c("a", "b", "c","d","e","f","g","h","i"), nrow = 3, ncol = 3)
+ma_matrice2
+```
+
+Afin de nommer les lignes et les colonnes des matrices 
+```{r}
+colnames(note_classe)= c("SVT", "Maths", "Physique")
+rownames(note_classe)=c("Elise", "Leon","Sully", "Anouck","Baptiste")
+note_classe
+```
+
+```{r}
+note_classe[,"SVT"] ## affiche la premiére colonne
+note_classe[,1] ## cette instruction est équivalente é la précédente 
+
+```
+```{r}
+note_classe["Sully",] ## affiche la 3éme ligne 
+note_classe[3,] ## instruction équivalente é la précédente 
+```
+Si nous souhaitons voir la note de Sully en physique, nous avons deux faéons de faire :
+```{r}
+note_classe["Sully", "Physique"]
+note_classe[3,3] ##méme instruction que précédement
+
+note_classe["Elise","Maths"]
+note_classe[1,2] ## note d'Elise en Maths
+
+```
+
+Pour accéder aux notes de Maths et de Physique d'Elise 
+
+```{r}
+note_classe["Elise", c("Maths", "Physique")]
+note_classe[1, c(2,3)]
+note_classe["Elise", 2:3]
+```
+
+Nous pouvons faire les mémes actions au niveau des lignes 
+Par exemple voir les notes de Anouck et de Baptiste en SVT
+```{r}
+note_classe[c("Anouck","Baptiste"), "SVT"]
+
+```
+
+## Modifier les éléments d'une matrice
+```{r}
+note_classe[c("Anouck","Baptiste"), "SVT"]= c(15, 17)
+note_classe[c("Anouck","Baptiste"), "SVT"]
+```
+
+##Opérations sur les matrices
+Nous allons reprendre dans cet exemple, la matrice note_classe et nous allons créer une nouvelle matrice que nous allons nomer matrice_ope
+```{r}
+matrice_ope = c(rep(0.25, times = 5), rep(0.5, times = 5), rep(0.75, times = 5)) # la fonction rep permet de répeter un nombre en times = 5 fois 
+matrice_ope
+matrice_ope=matrix(matrice_ope, nrow = 5, ncol = 3) # transformation du vecteur en matrice.
+matrice_ope
+```
+
+#Addition de deux matrices
+```{r}
+note_classe + matrice_ope
+```
+
+#Multiplication de deux matrices
+Dans R ce n'est pas un calcul matriciel oé il est question de multiplier la premiére ligne de la premiére matrice par la premiére colonne etc. C'est trés basique, premiére colonne de la premiére matrice multiplié par premiére colonne de la seconde matrcie.
+
+```{r}
+note_classe
+matrice_ope
+note_classe * matrice_ope
+```
+
+De méme pour la division 
+```{r}
+note_classe
+matrice_ope
+note_classe/matrice_ope
+```
+ # La soustraction 
+```{r}
+note_classe
+matrice_ope
+note_classe-matrice_ope
+```
+ 
+#Quelques fonctions pour les matrices 
+
+```{r}
+colSums(note_classe)
+rowSums(note_classe)
+
+colMeans(note_classe)
+round(rowMeans(note_classe),digits = 2)
+```
+
+#Exercice de manipulation des matrices
+```{r}
+library("Stat2Data")
+data("HousesNY")
+
+```
+
+La majotité des fichiers de données dans R représentent ce que l'on appelle des Data frame (une structure de données que nous allons étudier dans les sections qui suivent). Pour cet exemple, nous allons transformer ce data frame en matrcie grace é la fonction as.matrix. Ici, dans le fichier HousesNY, nous voulons également supprimer la premiére colonne qui indique les numéros de lignes dont nous n'avons pas l'utilité.
+
+
+```{r}
+maisons_prix_NY= as.matrix(HousesNY) # transformation du fichier de données HorsePrices en une matrice en supprimant les colonnes 1 et 5 
+maisons_prix_NY ## Affichage de la matrice 
+```
+
+Pour renommer les noms des variables qui sont en anglais, il faut utiliser la fonction colnames introduite dans la section précédente.
+
+
+```{r}
+colnames(maisons_prix_NY)=c("Prix","chambres","salle de bain", "taille","superficie") # modification des noms de variables
+maisons_prix_NY 
+```
+
+Aux USA, les superficies sont calculées en Square Feet (pied carré). Pour transformer du square feet au metre carré, il faut multiplier nos deux colonnes de size et lot par 0,092903. 
+
+```{r}
+maisons_prix_NY[,4]=maisons_prix_NY[,4]*1000*0.092903
+#Les surfaces sont en 1,000 square feet. Comme nous pouvons le remarquer, les surfaces au niveau de la colonne 4 représentent des petites valeurs. Dans le descriptif de la donnée, 
+maisons_prix_NY[,5]=maisons_prix_NY[,5]*4046.8546
+#1 acres = 4046,8546 Mé
+maisons_prix_NY[,1]=maisons_prix_NY[,1]*1000*0.9
+maisons_prix_NY=round(maisons_prix_NY,digit=2)
+maisons_prix_NY
+```
+
+Nous allons commencer à faire quelques statistiques sur cette matrice 
+Par exemple connaitre le prix moyen
+```{r}
+colMeans(maisons_prix_NY)
+summary(maisons_prix_NY)
+```
+
+Si nous souhaitons par exemple connaitre le prix de la maison la moins cher et connaitre ainsi les caractéristiques qui font son prix. Il suffit pour cela de chercher la ligne avec le prix le moins cher.
+```{r}
+min(maisons_prix_NY[,1])
+```
+
+```{r}
+maisons_prix_NY[maisons_prix_NY[,1]==34650,]
+maisons_prix_NY[maisons_prix_NY[,"Prix"]==34650,]
+```
+
+Nous pouvons effectuer le méme type d'opérations sur la maison la plus cher 
+
+```{r}
+maisons_prix_NY[maisons_prix_NY[,1]==177750,]
+maisons_prix_NY[maisons_prix_NY[,"Prix"]==177750,]
+```
+
+Imaginons que nous voulons changer le prix de cette maison et lui donner le pris de 160000
+
+```{r}
+maisons_prix_NY[maisons_prix_NY[,1]==177750,] = c(160000,4,2.5,210.70,4046.85)
+maisons_prix_NY[maisons_prix_NY[,1]==177750,]
+maisons_prix_NY[maisons_prix_NY[,1]==160000,]
+```
+
+Maitenant nous voulons afficher toutes les maison avec un prix inférieur é 100000 euros par exemple
+
+
+```{r}
+maisons_prix_NY[maisons_prix_NY[,1]<=100000,]
+```
+
+Si on veut connaitre le nombre de maisons dont le prix est inférieur é 100000 euros 
+
+```{r}
+dim(maisons_prix_NY[maisons_prix_NY[,1]<=100000,])
+```
+
+Si noucherchons par exemple des maisons avec 3 salles de bain 
+
+```{r}
+maisons_prix_NY[maisons_prix_NY[,3]==3,]
+```
+
+Si par exemple nous souhaitons connaitre le prix moyen, le nombre de chambre moyen, la taille moyenne et la superficie moyennes des maisons avec 3 salles de bain :
+```{r}
+colMeans(maisons_prix_NY[maisons_prix_NY[,3]==3,])
+#colMeans(maisons_prix_NY[,1])
+```
+

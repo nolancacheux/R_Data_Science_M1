@@ -1,0 +1,244 @@
+---
+title: "R Programming, Part 2"
+author: "Kedge/Junia"
+date: "4/21/2021"
+output: html_document
+---
+
+In this part of the course, we will explore Data Frames, one of the most important data structures for optimal data manipulation. The second part of the course is devoted to the data frame handling.
+
+
+# Data frame 
+It is the most used data structure in data science. It includes all types of data. In the same data frame, we can have variables or observations (columns) with numbers and other variables (observations) with characters (Male, Female) also Boolean types (True or False) generally represented by the digits 0 and 1.
+
+We could have directly approached the Data Frames but for educational reasons, it is more interesting and easier to start with the vectors, the matrices then the Data Frames
+
+In the following, we will create a new Data Frame.
+
+```{r}
+data_set_1= data.frame(c(23,25,28,29), c(45,75,52,66), c("f","h","f","h"),c(FALSE,TRUE,TRUE,FALSE))
+data_set_1
+```
+
+We will now give names to rows and columns using the functions used in the manipulation of matrices.
+
+```{r}
+colnames(data_set_1)=c("age", "weight","gender"," bool")
+rownames(data_set_1)=c("Elise","Sully","Anouck","Baptiste")
+data_set_1
+```
+
+
+# Importing data files
+
+In this section we will import the very well known iris file, available with the sent documents.
+
+1- define your storage directory as the working directory
+
+2-directly load the dataset from your working directory.
+```{r}
+#setwd("E:/ENSEIGNEMENT/PIERRE-FABRE/R-PROGRAMMING")
+
+```
+
+
+This is a dataset very well known to data scientists. Pedagogically, it is a data set with, which many concepts can be applied.
+The variables are:
+
+1-Sepal length,
+
+2-sepal width,
+
+3-petal length,
+
+4-petal width
+
+and this for 3 types of iris,
+
+1-setosa,
+
+2-versicolor,
+
+3-virginica.
+
+```{r}
+data_Iris=read.table("iris.csv", header = T, sep=",", row.names = 1) #row.names permet de définir la premiére colonnes comme nom de lignes.
+#View(data_Iris)
+dim(data_Iris) 
+```
+
+# Handling the data frames
+
+The head function allows us to display the first 6 rows of our dataset.
+```{r}
+#data_Iris[,1:4]
+head(data_Iris[,1:4])
+```
+
+If we want to display the 10th line, the 40th line and the 55th line,
+
+```{r}
+data_Iris[c(10,40,50), 1:4]
+```
+
+
+It is the same operating mode as the matrices. Other ways to access information at the data frame level is to use the names of the variables
+```{r}
+data_Iris[c(10,40,50), c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width")]
+```
+ 
+If you want to access only one column for example; here Petal.Length
+```{r}
+data_Iris$Petal.Length
+#head(data_Iris$Petal.Length) #$permet d'acceder directement à une seule colonne a partir du jeu de données.
+```
+ 
+Now imagine that we want to select all rows of the iris species "setosa"
+
+```{r}
+
+dim(data_Iris[data_Iris$Species=="setosa",])
+data_Iris$Species=="setosa" ##
+
+which(data_Iris$Species=="setosa")
+data_Iris[(data_Iris$Species=="setosa"),]
+
+```
+
+We can also do a lot of operation with which where I want the species "setosa" with sepale width "Sepal.Width" 
+```{r}
+dim(data_Iris[which(data_Iris$Species=="setosa"& data_Iris$Sepal.Width ==3.1 ),])
+```
+
+Another way to do this is using the very powerful% in% operator
+
+
+```{r}
+data_Iris$Species %in% c("setosa", "versicolor")
+data_Iris[data_Iris$Species %in% c("setosa","versicolor"),]
+
+#
+```
+Here %in% makes possible to select the lines which are TRUE when they correspond to the species or the requested criterion .
+
+Another way of selecting data under certain conditions is the subset function:
+
+```{r}
+?subset
+```
+
+
+```{r}
+iris_subset1 = subset(data_Iris, Species == "setosa" & Sepal.Width ==3.1)
+iris_subset1
+```
+If we want another data frame without the information about Species and Sepal.Width, we can take the previous code and add conditions using the select function of the subset function:
+
+```{r}
+iris_subset_setosa1 = subset(data_Iris, Species == "setosa" & Sepal.Width ==3.1,select=c("Sepal.Length","Petal.Length","Petal.Width"))
+iris_subset_setosa1
+```
+
+
+# Factor data type
+Factor is a type of data that characterizes qualitative modalities.
+For example, in a data set, a column of the sex of individuals is often characterized by the modalities "m" for male or "f" for female.
+In the example of the Iris dataset, the Species column is of type Factor.
+
+```{r}
+class(data_Iris$Species)
+head(data_Iris$Species)
+```
+Here, levels indicate the modalities of the species. This means that in our dataset we have 3 types of irises, the setosa, versicolor and virginica.
+
+If you want to modify the names of the lines instead of having 1,2,3 ... having iris 1, iris 2, iris 3, ... for this we can use the paste function
+```{r}
+rownames(data_Iris)= paste("iris", rownames(data_Iris), sep=" ")
+data_Iris
+
+```
+
+we can also do a small statistic regarding the Iris file with the summury function:
+```{r}
+summary(data_Iris)
+```
+As we can notice it, for the modality or the column Species, in there is no information concerning the min or the max like the other columns. This is normal since Spicies gives character type information.
+
+
+We are now going to do some manipulations that will allow us to access information.
+For example, oe wants to know for the type of species virginica, the smallest length of sepal
+
+```{r}
+min(data_Iris[data_Iris$Species=="virginica","Sepal.Length"])
+mean(data_Iris[data_Iris$Species=="virginica",1])
+max(data_Iris[data_Iris$Species=="virginica",1])
+```
+
+```{r}
+min(data_Iris[data_Iris$Species=="setosa",1])
+mean(data_Iris[data_Iris$Species=="setosa",1])
+max(data_Iris[data_Iris$Species=="setosa",1])
+```
+
+```{r}
+min(data_Iris[data_Iris$Species=="versicolor",1])
+mean(data_Iris[data_Iris$Species=="versicolor",1])
+max(data_Iris[data_Iris$Species=="versicolor",1])
+```
+
+Another remark in the handling of data frames:
+If, for example, we want to create a new data frame from our iris data set, for example we will select that the qualitative variable part hopefully: 
+```{r}
+data_iris_qualitative = data_Iris[,5]
+
+```
+
+The problem is that R will consider it as a factor instead of considering it as a data frame. This will complicate our operations if, for example, we want to group it with a data frame.
+To remedy :
+```{r}
+data_iris_qualitative =as.data.frame(data_Iris[,5])
+data_iris_qualitative
+```
+
+Here we notice that we no longer have the names of the lines that we created previously. To remedy this, we are going to redo the same operations that we saw in a previous cours:
+```{r}
+rownames(data_iris_qualitative)= paste("iris", rownames(data_iris_qualitative), sep=" ")
+colnames(data_iris_qualitative)=c("Spicies")
+data_iris_qualitative
+```
+
+
+Now, we are going to create another dataframe but with rather numerical values from the Iris data set.
+
+```{r}
+data_iris_quantitative = data_Iris[,c(1:4)]
+data_iris_quantitative
+```
+
+We now want to group the two data frames that we have just created.
+For that, we use several functions, the first one is merge:
+
+We can look in the help for merge functionality
+
+```{r}
+?merge
+```
+
+merge will actually match each row of the first data frame with the corresponding row of the second data frame.
+
+```{r}
+data_iris_complet = merge(data_iris_quantitative, data_iris_qualitative, by="row.names")
+data_iris_complet
+rownames(data_iris_complet)=data_iris_complet[,1]
+data_iris_complet=data_iris_complet[,-1]
+```
+
+Other ways to merge cbind and rbind
+
+```{r}
+cbind(data_iris_quantitative,data_iris_qualitative)
+rbind(data_Iris,data_Iris)
+dim(rbind(data_Iris,data_Iris))
+```
+
+
