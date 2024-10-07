@@ -22,13 +22,36 @@ Let's read in the file and explore the raw data!
 # explained in the prerequisite courses. Look at the hints if you need help.
 
 # Load the packages
-# .... YOUR CODE FOR TASK 1 ....
+library(readr)
+library(dplyr)
+```
 
+
+```{r}
 # Read in the data from the datasets folder
-# .... YOUR CODE FOR TASK 1 ....
+wwc_raw <- read_csv("2019_WWCFIFA_summary.csv")
+```
 
-# Check the dimensions and structure of the data
-# .... YOUR CODE FOR TASK 1 ....
+```{r}
+# Check the dimensions of wwc_raw
+dim(wwc_raw)
+```
+
+
+```{r}
+# Examine the structure of wwc_raw
+glimpse(wwc_raw)
+```
+
+
+```{r}
+summary(wwc_raw)
+```
+
+
+```{r}
+str(wwc_raw)
+
 ```
 
 ##Task 1: Instructions
@@ -44,19 +67,20 @@ Looking at the outputs, we notice a few things about the data. First, we have so
 
 ```{r}
 # Read in the data specifying column types
-wwc_raw <- read_csv(....,
+wwc_raw <- read_csv("2019_WWCFIFA_summary.csv",
                 col_types = cols(
                                 Round = col_factor(),
                                 Date = col_date(format = "%m/%d/%y"),
-                                Venue = .... 
+                                Venue = col_character()
                                   )
                  )
 
 # Look at the summary and structure of the data
-# .... YOUR CODE FOR TASK 2 ....
+summary(wwc_raw)
+glimpse(wwc_raw)
 
 # Print the dataset
-# .... YOUR CODE FOR TASK 2 ....
+print(wwc_raw)
 ```
 
 ##Task 2: Instructions
@@ -80,16 +104,30 @@ The last issue is more of a preference. Having all the column names in the same 
 Great hustle on Bob's part for collecting the information we need, but he gets a yellow card for inserting the rows of NA. Let's start cleaning the data by putting the column names in lowercase and removing the rows of NA.
 
 ```{r}
-# load the package
-# .... YOUR CODE FOR TASK 2 ....
+# Load the package
+library(tidyr)
+library(dplyr)
+```
 
-# Remove rows of NA
-wwc_1  <- wwc_raw  %>% 
- rename_all(....)  %>% 
- # .... YOUR CODE FOR TASK 2 ....
 
-# Get the dimensions and inspect the first 10 and last 10 rows
- # .... YOUR CODE FOR TASK 2 ....
+```{r}
+# Remove rows of NA and change column names to lowercase
+wwc_1 <- wwc_raw %>%
+  rename_all(tolower) %>%
+  filter(!is.na(round))
+```
+
+
+```{r}
+# Get the dimensions of wwc_1
+dim(wwc_1)
+```
+
+
+```{r}
+# Inspect the first 10 and last 10 rows
+head(wwc_1, 10)
+tail(wwc_1, 10)
 ```
 
 ##Task 3: Instructions
@@ -117,19 +155,47 @@ We only have the one NA in date and one NA in venue. We would expect the notes c
 
 ```{r}
 # Housekeeping
-wwc_2  <- wwc_1
+wwc_2 <- wwc_1
 
-# Find, view, and replace NA in column date
-index_date  <- ....
-# .... YOUR CODE FOR TASK 4 ....
-....  <- "2019-06-09"
-
-# Find, view, and replace NA in column venue
-index_venue  <- ....
-# .... YOUR CODE FOR TASK 4 ....
-....  <- "Groupama Stadium"
+# Find the index of the NA in the date column
+index_date <- which(is.na(wwc_2$date))
 ```
 
+
+```{r}
+# View the row with the missing date
+wwc_2[index_date, ]
+```
+
+
+```{r}
+# Replace the NA in the date column with the correct value
+wwc_2$date[index_date] <- as.Date("2019-06-09")
+```
+
+
+```{r}
+# Find the index of the NA in the venue column
+index_venue <- which(is.na(wwc_2$venue))
+```
+
+
+```{r}
+# View the row with the missing venue
+wwc_2[index_venue, ]
+```
+
+
+```{r}
+# Replace the NA in the venue column with the correct value
+wwc_2$venue[index_venue] <- "Groupama Stadium"
+```
+
+
+```{r}
+# Verify the replacements
+colSums(is.na(wwc_2))
+```
 
 
 ##Task 4: Instructions
@@ -155,12 +221,20 @@ For this task we're going to employ the functionality of separate(), mutate(), a
 
 
 ```{r}
+print(wwc_2)
+```
+
+
+```{r}
 # Separate columns and replace NA (you've got this!)
-wwc_3  <- wwc_2  %>% 
-  # .... YOUR CODE FOR TASK 5 ....
+wwc_3 <- wwc_2 %>%
+  separate(score, into = c("home_score", "away_score"), sep = "-", convert = TRUE) %>%
+  separate(pks, into = c("home_pks", "away_pks"), sep = "-", convert = TRUE) %>%
+  mutate(home_pks = replace_na(home_pks, 0),
+         away_pks = replace_na(away_pks, 0))
 
 # Print the data
-# .... YOUR CODE FOR TASK 5 ....
+print(wwc_3)
 ```
 
 ##Task 5: Instructions
@@ -185,13 +259,13 @@ Now we can take a look at attendance and find the information the boss wants. Le
 options(repr.plot.width=6, repr.plot.height=4)
 
 # Load the package
-# .... YOUR CODE FOR TASK 6 ....
+library(ggplot2)
 
-# Make a boxplot of attendance by venue and add the point data
-# .... YOUR CODE FOR TASK 6 .... 
-# .... YOUR CODE FOR TASK 6 ....
+# Create a boxplot of attendance by venue and add the point data
+ggplot(data = wwc_3) + aes(x = venue, y = attendance) +
+  geom_boxplot() +
   geom_jitter(color = "red", size = 0.5) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+ scale_y_continuous(labels = scales::comma)
 ```
 
 ##Task 6: Instructions
@@ -214,17 +288,42 @@ After chatting with Bob about the outlier and checking the match report, we lear
 For fun, add scale_y_continuous(labels = scales::comma) as the last line of the call to ggplot() in Task 6 and see how the y-axis value labels change.
 
 ```{r}
-# Summarize the number of games, and min and max attendance for each venue
-wwc_3  %>% 
-  # .... YOUR CODE FOR TASK 7 ....
+# Load necessary packages
+library(dplyr)
+```
 
+
+```{r}
+# Summarize the number of games, minimum attendance, and maximum attendance at each venue
+wwc_venue_summary_initial <- wwc_3 %>%
+  group_by(venue) %>%
+  summarize(
+    num_games = n(),
+    min_attendance = min(attendance, na.rm = TRUE),
+    max_attendance = max(attendance, na.rm = TRUE)
+  )
+
+print(wwc_venue_summary_initial)
+```
+
+
+```{r}
 # Correct the outlier
-wwc_4  <- wwc_3  %>% 
-  # .... YOUR CODE FOR TASK 7 ....
+wwc_4 <- wwc_3 %>%
+  mutate(attendance = replace(attendance, which(attendance == max(attendance)), 57900))
+```
 
-# Print an updated summary table 
-wwc_venue_summary <- wwc_4  %>% 
-  # .... YOUR CODE FOR TASK 7 ....
+
+```{r}
+# Print an updated summary table
+wwc_venue_summary_updated <- wwc_4 %>%
+  group_by(venue) %>%
+  summarize(
+    num_games = n(),
+    min_attendance = min(attendance, na.rm = TRUE),
+    max_attendance = max(attendance, na.rm = TRUE)
+  )
+print(wwc_venue_summary_updated)
 ```
 
 ##Task 7: Instructions
@@ -248,17 +347,23 @@ This time we will clean up the plot by setting the theme, adding a title, a subt
 # Housekeeping for plot size
 options(repr.plot.width=6, repr.plot.height=4)
 
+# Load necessary packages
+library(ggplot2)
+library(forcats)
+
 # Prettier boxplot of attendance data by venue
-wwc_4  %>% 
-  ggplot(aes(x = forcats::fct_reorder(venue, attendance), y = ....)) +
-    # .... YOUR CODE FOR TASK 8 ....
-    # .... YOUR CODE FOR TASK 8 ....
-    coord_flip() +
-    theme(axis.text.x = element_text(angle = 45, , hjust = 1)) +
-    labs(.... = ....,
-         .... = ....,
-         x = "Stadium", 
-         y = "Attendance")
+ggplot(wwc_4, aes(x = forcats::fct_reorder(venue, attendance), y = attendance)) +
+  geom_boxplot() +
+  geom_jitter(color = "red", size = 0.5) +
+  coord_flip() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(
+    title = "Distribution of attendance by stadium",
+    subtitle = "2019 FIFA Women's World Cup",
+    x = "Stadium",
+    y = "Attendance"
+  ) +
+  scale_y_continuous(labels = scales::comma)
 ```
 
 
@@ -284,18 +389,22 @@ Now that the data are clean, let's plot the attendance at each stadium over time
 options(repr.plot.width=6, repr.plot.height=4)
 
 # Line plot of attendance over time
-wwc_4  %>% 
-  ggplot(aes(...., ...., color = ....)) +
-   # .... YOUR CODE FOR TASK 8 ....
+ggplot(wwc_4, aes(x = date, y = attendance, color = venue)) +
+  geom_line() +
+  geom_point() +
   theme_minimal() +
-  theme(legend.position = "bottom",
-       legend.text = element_text(size = 8)) +
+  theme(
+    legend.position = "bottom",
+    legend.text = element_text(size = 8)
+  ) +
   guides(col = guide_legend(nrow = 3)) +
-  labs(title = "Stadium attendance during the tournament",
-       subtitle = "2019 FIFA Women's World Cup",
-       x = "Date", 
-       y = "Attendance",
-      color = "") 
+  labs(
+    title = "Stadium attendance during the tournament",
+    subtitle = "2019 FIFA Women's World Cup",
+    x = "Date",
+    y = "Attendance",
+    color = ""
+  )
 ```
 
 ##Task 9: Instructions
@@ -312,19 +421,36 @@ Great job! We have a couple of beautiful plots to give our boss. With a little m
 
 ```{r}
 
-# What match had the higest attendance?
+# What match had the higest attendance? ans_1
 # A: wk = SMIF, England vs. USA
 # B: wk = FIN, USA vs. Netherlands
 # C: wk = SMIF, Netherlands vs. Sweden
 
-ans_1  <- "...."
-
-# In what stadium was the match with the highest attendance played?
+# In what stadium was the match with the highest attendance played? ans_2
 # A: Groupama Stadium
 # B: Parc des Princes
 # C: Stade des Alpes
 
-ans_2  <- "...."
+# Load necessary packages
+library(dplyr)
+
+# Sort the dataset by attendance in descending order
+sorted_wwc <- wwc_4 %>%
+  arrange(desc(attendance))
+
+# Identify the match with the highest attendance
+highest_attendance_match <- sorted_wwc[1, ]
+
+# Assign the correct answers
+ans_1 <- "wk = FIN, USA vs. Netherlands"  # Based on the sorted data
+ans_2 <- "Groupama Stadium"  # Based on the sorted data
+
+# Print the answers
+print(paste("ANSWER 1: wk =", highest_attendance_match$wk, ",", highest_attendance_match$home, "VS", highest_attendance_match$away))
+
+
+print(paste("ANSWER 2: Stadium =", highest_attendance_match$venue))
+
 ```
 
 ##Task 10: Instructions

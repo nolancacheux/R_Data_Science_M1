@@ -23,7 +23,7 @@ Vous avez été contacté par un magazine de finance et le directeur de l'éditi
 Comme d'habitude, il faut définir son répertoire de travail.
 
 ```{r}
-setwd("~/Documents/DOMAINE-BIG-DATA/DATA-REPPORT-COM-VIS/COURS-DATA-REPPORT/COURS5")
+#setwd("~/Documents/DOMAINE-BIG-DATA/DATA-REPPORT-COM-VIS/COURS-DATA-REPPORT/COURS5")
 ```
 
 We are going to load our dataset which is already in the working directory.
