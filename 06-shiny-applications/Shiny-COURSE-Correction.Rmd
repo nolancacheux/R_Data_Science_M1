@@ -1,0 +1,2250 @@
+---
+title: "Shiny"
+author: "Feryal WINDAL"
+date: "11/4/2023"
+output: html_document
+---
+
+Un tableau de bord est un outil de visualisation des données qui est toujours actualisé, permettant un suivi en temps réel et une interaction, contrairement à un rapport statique qui ne change pas une fois créé. En utilisant le package shinydashboard dans R, vous pouvez créer ces tableaux de bord de données en direct, qui peuvent être améliorés avec des modules pour des fonctionnalités supplémentaires.
+
+###########################################
+
+A dashboard is a tool for visualizing data that is always up-to-date, allowing for real-time monitoring and interaction, unlike a static report that doesn't change once it's created. Using the shinydashboard package in R, you can create these live data dashboards, which can be enhanced with modules for additional functionality.
+
+```{r}
+#install.packages("shiny")
+install.packages("shinydashboard")
+```
+
+```{r}
+library(shiny)
+library(shinydashboard)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+```
+
+
+```{r}
+library(dplyr)
+sleep <-read.csv("Time Americans Spend Sleeping.csv")
+```
+
+
+***********************************************
+Imaginons que chaque composant d'une application Shiny soit une partie d'un restaurant. L'application Shiny, c'est comme le restaurant dans son ensemble. L'utilisateur de l'app est comparable à un client qui vient dîner. L'interface utilisateur, c'est comme la table du restaurant où se trouvent les menus (les entrées) et où seront servis les plats (les sorties). Les sorties de l'application sont les différents plats que le restaurant propose, tandis que les entrées sont les choix et les préférences que le client transmet pour obtenir son plat désiré, soit sa commande. Ainsi, l'interface utilisateur est le lieu où le client fait ses choix et attend les résultats de ces choix. Pour que la commande soit transmise à la cuisine et que le plat arrive à la table, il faut un serveur. Dans une application Shiny, c'est le serveur qui joue ce rôle de passeur : il reçoit les instructions de l'utilisateur et indique à l'application quels résultats produire.
+
+
+###########################################
+Let's break down the parts of a Shiny app by comparing it to a restaurant. The Shiny app is the restaurant itself. A user of the app is akin to a diner at the restaurant. The user interface is like the diner's table, equipped with menus (inputs) where orders are placed and dishes (outputs) are served. The outputs are the variety of dishes the restaurant offers, while the inputs are the specific choices and preferences the diner communicates to receive their desired meal. Just as a diner selects dishes and expects them to be served at the table, the user interacts with the app's interface to receive outputs based on their inputs. And, just as a waiter takes the order to the kitchen and brings the food to the table, the server in a Shiny app acts as an intermediary, processing user inputs and determining the outputs to display.
+
+***********************************************
+Voyons à quoi ressemble une application Shiny dans le code R. 
+Pour commencer, il faut importer le package shiny. 
+L'interface utilisateur est définie par la fonction fluidPage. Il est d'usage de stocker l'objet fluidPage dans une variable appelée ui, pour rendre le code plus lisible et pour se rappeler que cela représente l'interface utilisateur. C'est dans cette interface que l'on ajoute les éléments de l'application, comme le titre avec la fonction titlePanel. Le titre sera alors affiché. Le serveur est défini par une fonction que l'on nomme généralement server. Enfin, la fonction shinyApp assemble le tout et génère l'application. Dans notre exemple, nous avons une application basique avec juste un titre.
+
+#################################################
+
+Let's look at the structure of a Shiny app in R code. First, we need to load the shiny package. The user interface is crafted using the fluidPage function, which we typically assign to a variable named ui for better code clarity, symbolizing the user interface. Within this UI, we add app components such as the title using the titlePanel function. The server is created through a custom function usually named server. The shinyApp function then ties the UI and server together to launch the app. In this instance, our app is simple, featuring only a title.
+```{r}
+library(shiny)
+ui<-fluidPage(titlePanel("Your first App ;-)"))
+server <- function(input, output) {
+}
+
+# Supprimer la virgule après l'objet `server`
+shinyApp(ui, server, NULL)
+```
+
+# Exercise 1
+## An empty shinyApp
+At this point, you know what makes a shinyApp. For starters, you can first set up an empty shinyApp just as we did in the slide.
+
+To do this, recall the restaurant analogy where the app user is like the patron, the UI is like the table at which the patron is sitting at, and the server is like the helpful waiter.
+
+In the exercise, you will need to identify these components to render a blank shinyApp.
+
+## Instruction 
+Set the title as "Sleeping habits in America" in the titlePanel() function, and store fluidPage() as ui.
+Store the empty custom function as server.
+Add the ui and server as arguments to shinyApp().
+
+# Hint
+
+You can set the title in the ui.
+This code will produce an empty shinyApp, which is why the ui and server are empty, apart from the title.
+The UI and server are glued together by shinyApp().
+
+```{r}
+library(shiny)
+# Add a title and store as ui
+___ <- fluidPage(titlePanel(___))
+# Store empty custom function as server
+___ <- function(input, output){
+}
+# Enter the arguments for shinyApp()
+shinyApp(___, ___)
+```
+
+```{r}
+library(shiny)
+# Add a title and store as ui
+ui <- fluidPage(titlePanel("Sleeping habits in America"))
+# Store empty custom function as server
+server <- function(input, output){
+}
+# Enter the arguments for shinyApp()
+shinyApp(ui, server)
+```
+
+
+Now that we have seen what a shinyApp is made of, let us look at the types of inputs that we can insert into it.
+
+# input functions 
+Dans l'interface utilisateur d'une application Shiny, les utilisateurs peuvent saisir des informations, un peu comme ils donneraient des instructions à un serveur dans un restaurant. Ces informations sont transmises au serveur de l'application. Pour ce faire, on ajoute à l'interface des fonctions d'entrée. Dans une fonction d'entrée classique, le premier argument est une étiquette d'identification qui reste invisible pour l'utilisateur. Le second est une étiquette visible qui sera affichée dans l'application Shiny. Les autres arguments dépendent du type d'entrée utilisé.
+
+
+###############################################
+Let's look at an example using input functions. Suppose we carried out a sleep study and collected plenty of data, and will now like to design a shinyApp that allows users to give inputs. What possible types of inputs can such a shinyApp user give? Let's answer this question here.
+
+***********************************************
+Dans une application Shiny, un élément d'interaction fréquemment utilisé est selectInput, que nous intégrons dans l'interface utilisateur (ui). Cet élément crée un menu déroulant où l'utilisateur peut choisir parmi plusieurs options. Le troisième argument de selectInput est un vecteur, et chaque élément du vecteur représente une option que l'utilisateur peut sélectionner. Dans notre exemple, nous avons défini quatre options possibles.
+
+Pour le moment, nous laisserons le server vide, car il n'aura pas besoin de récupérer ou de traiter des informations immédiatement. Finalement, pour démarrer et afficher l'application Shiny, nous exécutons la fonction shinyApp. Cette étape est cruciale, car c'est elle qui prend en charge l'assemblage de l'interface utilisateur et du serveur, et qui lance l'application.
+
+###############################################
+In a Shiny application, a commonly used interactive element is selectInput, which we place in the user interface (ui). This element creates a dropdown menu from which the user can choose among several options. The third argument of selectInput is a vector, with each element being a selectable option by the user. In our case, we have provided four possible options.
+
+For now, we will keep the server empty since it does not need to retrieve or process any information immediately. Eventually, to launch and display the Shiny app, we run the shinyApp function. This step is crucial as it is responsible for putting together the user interface and the server, and for starting the application.
+
+
+```{r}
+library(shiny)
+ui <- fluidPage(titlePanel("Sleeping habits in America"),
+  selectInput("selectlabel", "Select an option",
+              choices = c("Option 1", "Option 2", "Option 3", "Option 4"))
+)
+
+server <- function(input, output, session) {
+  # Le serveur est vide ici, vous pouvez ajouter des réactivités ou d'autres éléments de serveur si nécessaire.
+}
+
+# Enter the arguments for shinyApp()
+shinyApp(ui, server)
+```
+
+# selectInput with multiple selections
+
+Nous pouvons également ajouter une quatrième option nommée "multiple" qui permet aux utilisateurs de choisir plusieurs valeurs.
+ selectInput avec sélections multiples
+Cela va alors produire une application où l'utilisateur peut sélectionner plusieurs options.
+##############################################################
+We can also add a fourth option named "multiple" which allows users to select multiple values.
+Multiple selection selectInput
+We can also add a fourth option called "multiple" which allows users to select multiple values.
+
+
+```{r}
+# UI layout
+ui <- fluidPage(
+  # Title panel at the top of the app, like a heading or the name of a survey
+  titlePanel("Sleeping habits in America"),
+  
+  # Dropdown input allowing multiple selections
+  # It's like offering a checkbox list where respondents can tick more than one answer
+  selectInput("selectlabel", # Unique ID to reference this input in server logic
+              "Select an option", # Label displayed above the dropdown
+              choices = c("Option 1", "Option 2", "Option 3", "Option 4"), # Options available in the dropdown
+              multiple = TRUE) # The key part: 'multiple = TRUE' allows users to choose more than one option
+)
+
+# Server function: Handles the server-side logic of Shiny apps but it's empty here as the functionality for the multiple selections has not been defined yet
+server <- function(input, output, session) {
+  
+}
+
+# The Shiny app object: This combines the UI and server components and starts the app
+shinyApp(ui, server)
+
+```
+
+
+# textInput
+
+Un autre exemple est textInput. Il y a deux autres arguments importants dans textInput. L'un est la valeur (value), qui est la valeur avec laquelle le champ de texte est prérempli. L'argument value est généralement laissé vide. L'autre est le placeholder, qui peut contenir des instructions supplémentaires ou un exemple de ce que nous souhaitons que les utilisateurs saisissent. Nous pouvons assembler ui et server en utilisant shinyApp.
+
+####################################################################
+
+Another example is textInput. There are two other important arguments in textInput. One is the value (value), which is the value that the textbox is pre-filled with. The value argument is typically kept empty. The other is the placeholder, which can contain further instructions or a sample of what we want users to enter. We can glue ui and server together using shinyApp.
+
+
+```{r}
+# Define the UI (User Interface) for your Shiny app
+ui <- fluidPage(  
+  # Title panel for the main title of the app
+  titlePanel("Sleeping habits in America"), 
+
+  # textInput for user's name input
+  # "textlabel" is the unique ID for this input which is used in the server logic
+  # "Tell me your name" is the label displayed to the user
+  # "value" is a pre-filled default value in the textbox, here pre-filled with "BigData"
+  # "placeholder" is a faint suggestion displayed in the textbox when it's empty, here with the text "Don"
+  textInput("textlabel", "Tell me your name", value = "BigData", placeholder = "Don")
+)
+
+# Define the server logic of the Shiny app
+# The server function takes input and output parameters, as well as an optional session parameter
+server <- function(input, output, session) {
+  # Server logic will go here
+}
+
+# Create the Shiny app object by "gluing" together the UI and the server components
+# shinyApp creates a complete Shiny app with the specified UI and server logic
+shinyApp(ui, server)
+
+
+```
+
+## checkboxInput
+
+Un autre exemple est checkboxInput. Cela fournit une simple case à cocher dans l'application. Le troisième argument, value, qui est soit TRUE soit FALSE, nous permet de basculer l'état initial de la case à cocher. Il existe une variation de checkboxInput, appelée checkboxGroupInput qui produit un groupe de cases à cocher.
+
+##############################################################
+
+Another example is checkboxInput. This provides a single checkbox in the app. The third argument, value, is either TRUE or FALSE, which will allow us to toggle the initial state of the checkbox. There is a variation of checkboxInput, called checkboxGroupInput, which produces a group of checkboxes.
+
+
+```{r}
+# Define the UI (User Interface) for your Shiny app
+ui <- fluidPage(
+  # Title panel for the main title of the app
+  titlePanel("Sleeping habits in America"), 
+
+  # checkboxInput for creating a single checkbox
+  # "checkboxlabel" is the unique ID for this input, used to refer to this checkbox in the server logic
+  # "65 years and over" is the label next to the checkbox
+  # "value" determines the initial state of the checkbox (checked/unchecked), here it is set to FALSE, so the box will initially be unchecked
+  checkboxInput("checkboxlabel", "65 years and over", value = FALSE)
+)
+
+# Define the server logic of the Shiny app
+server <- function(input, output, session) {
+  # Server logic will go here
+}
+
+# Create the Shiny app by combining the UI and server with shinyApp function
+shinyApp(ui, server)
+
+
+```
+
+## sliderInput
+
+Enfin, sliderInput. Cela produit un curseur qui permet à l'utilisateur de faire l'une des deux choses. L'utilisateur peut sélectionner une valeur numérique unique à partir d'une gamme de nombres, ou bien deux. Pour permettre aux utilisateurs de sélectionner une valeur unique, nous devons définir les arguments min et max. La valeur initiale est déterminée par value. Nous pouvons également définir la taille de l'incrément avec step.
+
+#####################################################
+
+Finally, sliderInput. This creates a slider that allows the user to do one of two things. The user can select a single numerical value from a range, or select two values. To enable users to select a single value, we set the min and max arguments. The initial value is determined by value. The step size can also be set using step.
+
+
+
+```{r}
+# Define the UI (User Interface) for your Shiny app
+ui <- fluidPage(
+  # Title panel for the main title of the app
+  titlePanel("Sleeping habits in America"),
+
+  # sliderInput for creating a slider for numerical input
+  # "sliderlabel" is the unique ID for this input, which will be used to refer to the slider value in the server logic
+  # "Average hours of sleep" is the label displayed above the slider
+  # "min" sets the minimum value of the slider, here it's set to 7.5
+  # "max" sets the maximum value of the slider, here it's set to 11
+  # "value" sets the initial position of the slider, here it's set to 9
+  # "step" defines the increment of the slider's values, here it's set to 0.02
+  sliderInput("sliderlabel", "Average hours of sleep",
+              min = 7.5,
+              max = 11,
+              value = 9,
+              step = 0.02)
+)
+
+server <-function(input, output, session){
+  
+}
+shinyApp(ui, server)
+
+```
+
+## sliderInput avec plages
+
+Pour obtenir un curseur à deux côtés où deux nombres peuvent être sélectionnés, il suffit de définir l'argument value à un vecteur de longueur 2. Dans cet exemple, nous avons défini la valeur à un vecteur contenant 8 et 10.
+
+##########################################################@
+
+To have a two-sided slider where two numbers can be selected, we only need to set the value argument to a length-2 vector. In this example, we have set the value to a vector containing 8 and 10.
+
+```{r}
+ui <- fluidPage(  
+  titlePanel("Sleeping habits in America"), 
+  sliderInput("sliderlabel","Average hours of sleep", 
+              min = 7.5, 
+              max = 11,
+              value =c(8,10), 
+              step =0.02))
+
+
+server <-function(input, output, session){
+  
+}
+shinyApp(ui, server)
+
+```
+
+# Exercise 2 
+
+## Practicing sliderInput
+You have seen some common examples of shinyApp inputs. You will first practice with sliderInput, which will give you either a one-sided or two sided slider.
+
+Suppose you are building a shinyApp based on some sleep data which has been stored as sleep. You now want to allow the app user to filter the data by selecting a range of values for the average number of hours spent sleeping.
+### Instruction 1
+Set the min and max values to 7.5 and 11.
+Set the initial value to 8.
+Change the step to 0.5.
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  sliderInput("sliderlabel",
+              "Average hours of sleep",
+              # Set the min and max values
+              min = ___, max = ___,
+              # Set the initial value to 8
+              value = ___,
+              # Set the step size to 0.5
+              step = 0.2))
+server <- function(input, output, session) {
+}
+
+shinyApp(ui, server)
+```
+
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  sliderInput("sliderlabel",
+              "Average hours of sleep",
+              # Set the min and max values
+              min = 7.5, max = 11,
+              # Set the initial value to 8
+              value = 8,
+              # Set the step size to 0.5
+              step = 0.5))
+server <- function(input, output, session) {
+}
+
+shinyApp(ui, server)
+```
+
+# Exercise 3
+## Inserting multiple inputs
+You can insert more than just one input. Suppose you also want app users to choose the average number of hours spent sleeping, as well as a specific year.
+
+To this end, in the ui, you can insert another sliderInput() where the values are the years of interest.
+
+##Instruction 
+Add another sliderInput() as a second input for your shinyApp and label it as "yearlabel".
+Set the number range to be between 2003 and 2017.
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  sliderInput("sliderlabel",
+              "Average hours of sleep",
+              min = 7.5, max = 11,
+              value = 8, step = 0.5),
+  # Add another sliderInput and label the input as "yearlabel"
+  ___(___,
+               "Year",
+            # Set the number range to be between 2003 and 2017
+               ___, ___,
+               value = 2004, step = 1, sep = ""))
+server <- function(input, output, session) {
+}
+shinyApp(ui, server)
+```
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  sliderInput("sliderlabel",
+              "Average hours of sleep",
+              min = 7.5, max = 11,
+              value = 8, step = 0.5),
+  # Add another sliderInput and label the input as "yearlabel"
+  sliderInput("yearlabel",
+               "Year",
+            # Set the number range to be between 2003 and 2017
+               min = 2003, max = 2017,
+               value = 2004, step = 1, sep = ""))
+server <- function(input, output, session) {
+}
+shinyApp(ui, server)
+```
+# Exercise 4
+
+##checkboxInput and checkboxGroupInput
+You will now try another example involving checkbox inputs. As mentioned before, this can be done using checkboxInput() if you only need a single checkbox, and checkboxGroupInput() if you need multiple checkboxes.
+
+In your shinyApp, you may also want users to be able to select types of days of the week, since people may have different sleeping habits depending on the day of the week. You may, for example, tend to sleep a tad later if you don't have school or work the next day.
+
+In this exercise, you will allow users to select one of the following options:
+
+"All days"
+"Nonholiday weekdays"
+"Weekend days and holidays"
+
+### Instruction 
+Add checkboxInput() to the UI.
+Set its name to "Display year" and set its initial value to TRUE so that the checkbox is pre-selected.
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  # Add a checkbox input
+  ___("checkboxlabel",
+              # Set the name and initial value
+              ___, value = ___))
+server <- function(input, output, session) {
+}
+
+shinyApp(ui, server)
+```
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  # Add a checkbox input
+  checkboxInput("checkboxlabel",
+              # Set the name and initial value
+              "Display year", value = TRUE))
+server <- function(input, output, session) {
+}
+
+shinyApp(ui, server)
+```
+
+#Instruction 
+Add a group of checkboxes using checkboxGroupInput() as a second input.
+Set it up such that only the "All days" checkbox is initially selected.
+
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  checkboxInput("checkboxlabel",
+              "Display year", value = TRUE),
+  # Add a group of checkboxes
+  ___("days", "Choose types of days:",
+                                  choiceNames = list("All", "Nonholiday", "Weekends and holidays"),
+                                  choiceValues = list("All days", "Nonholiday weekdays", "Weekend days and holidays"),
+                     # "All days" checkbox is initially selected
+                                  selected = ___))
+server <- function(input, output, session) {
+}
+
+shinyApp(ui, server)
+```
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  checkboxInput("checkboxlabel",
+              "Display year", value = TRUE),
+  # Add a group of checkboxes
+  checkboxGroupInput("days", "Choose types of days:",
+                                  choiceNames = list("All", "Nonholiday", "Weekends and holidays"),
+                                  choiceValues = list("All days", "Nonholiday weekdays", "Weekend days and holidays"),
+                     # "All days" checkbox is initially selected
+                                  selected = list("All days")))
+server <- function(input, output, session) {
+}
+
+shinyApp(ui, server)
+```
+
+
+
+# Chapter 2 Output Types
+Nous allons maintenant ajouter des sorties et définir des interactions.
+
+## Output and Render Functions
+
+Dans une shinyApp, il y aura des sorties qui peuvent prendre la forme de texte, de graphiques, etc. Ces sorties sont comme les plats que le restaurant sert. Pour chaque sortie, une paire de codes doit être appelée. La première est une fonction dans l'UI, qui nous permet de positionner la sortie. Une telle fonction de sortie nécessite généralement une étiquette d'identification et d'autres arguments spécifiques à la sortie. Le second code nécessaire est défini à l'intérieur de la fonction server, qui prendra la forme suivante. Les arguments d'une fonction de rendu détermineront la forme et l'apparence de notre sortie.
+
+############################################################
+We will now add outputs and define interactions.
+
+In a shinyApp, there will be outputs that can take the form of text, graphs, etc. These outputs are like the dishes that the restaurant serves. For each output, a pair of codes must be called. The first is a function in the UI, which allows us to position the output. Such an output function generally requires an identification label and other arguments specific to the output. The second necessary code is defined within the server function, which will take the following form. The arguments of a render function will determine the shape and appearance of our output.
+
+
+<type>output(<identifying label>, ...)
+output$<identifying label> <- render<type>(...)
+
+## Example: Sleep Study
+Supposons que nous avons collecté des données d'une étude sur le sommeil. Nous allons utiliser la moyenne des heures de sommeil par jour et exploiter de nombreuses variables catégorielles telles que l'Année, la Période et le type de jours.
+
+## textOutput
+Un exemple simple est celui d'un textOutput. Plaçons ce textOutput dans l'UI.
+
+##############################################################@
+Let's assume we have collected data from a sleep study. We will use the average number of hours slept per day and explore many categorical variables such as Year, Period, and type of days.
+
+textOutput
+
+A simple example is that of a textOutput. Let's place this textOutput in the UI.
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  textOutput("textlabel"))
+
+server <-function(input, output){}
+shinyApp(ui, server)
+
+```
+
+## renderText
+À ce stade, nous ne verrons pas encore le textOutput rendu. Pour rendre le textOutput, nous devrons appeler la fonction renderText dans le serveur. Notez la notation avec le signe dollar, utilisée pour attribuer une valeur à la sortie textlabel.
+
+```{r}
+# Define the UI (User Interface) for the Shiny app
+ui <- fluidPage(
+  # Title panel with the title "Sleeping habits in America"
+  titlePanel("Sleeping habits in America"),
+  
+  # textOutput to display text within the UI
+  # "textlabel" is the unique ID for this output element
+  textOutput("textlabel")
+)
+
+# Define the server function that contains the logic of the Shiny app
+server <- function(input, output) {
+  # The text output content is defined here
+  # "textlabel" output is assigned the value of renderText
+  # renderText is used to render a text string as output in the UI
+  output$textlabel <- renderText("Sleep deprivation is a serious health issue in many major cities around the world.")
+}
+
+shinyApp(ui, server)
+
+```
+
+## textOutput with interactions
+Nous pouvons également intégrer la saisie de l'utilisateur. À ce stade, les sorties ne changent pas en fonction de la saisie fournie. Pour permettre des interactions entre la saisie de l'utilisateur et la sortie, nous devons appeler les entrées en utilisant la notation avec le signe dollar.
+
+Considérons les interactions avec une saisie de texte. La saisie de texte, que nous avons étiquetée comme textlabel, est appelée dans la fonction server dans ce bloc de code. Cela est défini à l'intérieur de renderText, ce qui permet ensuite des interactions avec le textOutput.
+
+Une fois l'application rendue, la mise à jour de la saisie mettra à jour la sortie texte, comme souhaité.
+
+##################################################################
+We can also integrate user input. At this point, the outputs do not change based on the input provided. To allow interactions between the user's input and the output, we need to call the inputs using the notation with the dollar sign.
+Consider interactions with a text input. The text input, which we have labeled as textlabel, is called within the server function in this code block. This is defined within renderText, which then allows for interactions with the textOutput.
+
+Once the app is rendered, updating the input will update the text output, as desired.
+
+
+```{r}
+# Define the UI (User Interface) for the Shiny app
+ui <- fluidPage(
+  # Title panel with the title "Sleeping habits in America"
+  titlePanel("Sleeping habits in America"),
+  
+  # textInput to receive a name from the user
+  # "textlabel" is the unique ID for this input element, which can be used in the server logic
+  # The 'value' is initially set to an empty string and 'placeholder' provides a hint in the input box
+  textInput("textlabel", "Tell me your name", value = "", placeholder = "Type your name here"),
+
+  # textOutput to display text within the UI
+  # "textoutlabel" is the unique ID for this output element
+  textOutput("textoutlabel")
+)
+
+# Define the server function that contains the logic of the Shiny app
+server <- function(input, output) {
+  # The text output content is defined here using renderText
+  # "textoutlabel" output is dynamically created by pasting "Hello" with the user's input from "textlabel"
+  # Notation 'input$textlabel' is used to retrieve the value from the user input
+  output$textoutlabel <- renderText(paste0("Hello ", input$textlabel, 
+                          " Sleep deprivation is a serious health issue in many major cities around the world."))
+}
+
+shinyApp(ui, server)
+
+```
+
+
+## plotOutput
+Nous montrerons fréquemment des graphiques dans une shinyApp ou shinydashboard, ce qui est réalisé en plaçant plotOutput dans l'UI.
+##########################################################################
+We will often show graphs in a shinyApp or shinydashboard, which is accomplished by placing plotOutput in the UI.
+
+```{r}
+# Define the UI (User Interface) for the Shiny app
+ui <- fluidPage(
+  # Title panel with the title "Sleeping habits in America"
+  titlePanel("Sleeping habits in America"),
+  
+  # plotOutput is used to display graphs within the UI
+  # "plotlabel" is the unique ID for this plot output element
+  plotOutput("plotlabel")
+)
+
+# Define the server function that contains the logic of the Shiny app
+server <- function(input, output) {
+  # Graph rendering logic will be placed here
+}
+shinyApp(ui, server)
+
+```
+
+## renderPlot
+Pour rendre le graphique, nous devrons faire une affectation à l'intérieur de la fonction serveur en utilisant renderPlot. Dans cet exemple, un histogramme est tracé.
+
+##################################################
+To render the graph, we will need to make an assignment within the server function using renderPlot. In this example, a histogram is plotted.
+```{r}
+library(ggplot2)
+# Define the UI (User Interface) for the Shiny app
+ui <- fluidPage(
+  # Title panel with the title "Sleeping habits in America"
+  titlePanel("Sleeping habits in America"),
+  
+  # plotOutput is used to display graphs within the UI
+  # "plotlabel" is the unique ID for this plot output element
+  plotOutput("plotlabel")
+)
+
+# Define the server function that contains the logic of the Shiny app
+server <- function(input, output) { 
+  # To render the graph, an assignment is made inside the server function using renderPlot.
+  # In this example, a histogram is plotted.
+  output$plotlabel <- renderPlot({
+    # Assuming 'sleep' is a dataframe containing the data and 'Avg hrs per day sleeping' is one of its columns
+    ggplot(sleep) +
+      geom_histogram(aes(x =`Avg hrs per day sleeping`)) # Histogram of average hours per day sleeping
+  })
+}
+shinyApp(ui, server)
+
+```
+
+
+
+## plotOutput with selectInput
+Voici un exemple où nous traçons soit un histogramme, soit un graphique en boîte en fonction de la saisie de l'utilisateur. Nous avons étiqueté la saisie comme selectinput, et la sortie comme plotlabel.
+##############################################################
+Here is an example where we plot either a histogram or a boxplot depending on the user's input. We have labeled the input as selectinput, and the output as plotlabel.
+
+```{r}
+ui <- fluidPage(
+  # Title panel with the title "Sleeping habits in America"
+  titlePanel("Sleeping habits in America"),
+  
+  # selectInput for user to choose the type of plot they want to see
+  # "selectlabel" is the unique ID for this select input element
+  selectInput("selectlabel", "Select an option", choices = c("Histogram", "Boxplot")),
+  
+  # plotOutput to display the graph based on the selection
+  # "plotlabel" is the unique ID for this plot output element
+  plotOutput("plotlabel")
+)
+
+# Define the server logic
+server <- function(input, output) {
+  # The output$plotlabel renderPlot will create either a histogram or a boxplot depending on the user's input
+  output$plotlabel <- renderPlot({
+    # If the user selects "Histogram", plot a histogram
+    if (input$selectlabel == "Histogram") {
+      ggplot(sleep) + geom_histogram(aes(x = `Avg hrs per day sleeping`))
+    # If the user selects "Boxplot", plot a boxplot
+    } else if (input$selectlabel == "Boxplot") {
+      ggplot(sleep) + geom_boxplot(aes(x = `Avg hrs per day sleeping`))
+    }
+  })
+}
+shinyApp(ui, server)
+
+```
+
+
+## plotOutput with  selectInput
+Dans la fonction serveur, les instructions if-else affichent un histogramme si "histogramme" est sélectionné et un graphique en boîte autrement.
+
+Dans l'application shiny rendue, sélectionner "histogramme" produit un histogramme, et ainsi de suite.
+
+## plotOutput with sliderInput
+Voici un autre exemple où nous utilisons un sliderInput pour afficher le graphique en boîte en fonction de la plage de valeurs sélectionnées.
+
+L'application rendue produit un graphique en boîte qui réagit à la saisie de l'utilisateur sur le curseur.
+
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  sliderInput("sliderlabel","Average hours of sleep",
+              min=7.5,
+              max=11, 
+              value =c(7.5,11), 
+              step =0.02),  
+        plotOutput("plotlabel"))
+
+server <-function(input, output){
+  output$plotlabel <- renderPlot({
+    filter(sleep,
+           `Avg hrs per day sleeping` >= input$sliderlabel[1],
+           `Avg hrs per day sleeping` <= input$sliderlabel[2])%>% 
+       ggplot()+
+      geom_boxplot(aes(x=`Avg hrs per day sleeping`))
+  })
+  }
+shinyApp(ui, server)
+
+```
+
+
+## Icons in Shiny
+Discutons brièvement des icônes dans shiny. Ce sont des icônes qui peuvent être incluses dans une shinyApp pour un aspect plus épuré.
+https://fontawesome.com/icons
+
+
+Pour obtenir des icônes, nous utiliserons la fonction icon. Revenons à un exemple antérieur. Étant impliqué dans une étude du sommeil, il est approprié d'utiliser une icône de lit quelque part. Placer l'icône dans une liste avec le texte affiché les rend côte à côte.
+
+#############################################
+Let's briefly talk about icons in Shiny. These are icons that can be included in a Shiny app for a cleaner look.
+https://fontawesome.com/icons
+
+To get icons, we will use the icon function. Going back to a previous example, being involved in a sleep study, it is appropriate to use a bed icon somewhere. Placing the icon in a list with the displayed text puts them side by side.
+```{r}
+# Define UI for app that includes a slider and plot output
+ui <- fluidPage(  
+  # Add an application title
+  titlePanel("Sleeping habits in America"), 
+
+  # Create a slider input with an icon
+  # We're using the 'icon' function to add a bed icon to the slider input for visual appeal
+  sliderInput("sliderlabel",
+              list(icon("bed")),  # Adding a bed icon next to the slider label
+              min=7.5,            # The minimum value of the slider
+              max=11,             # The maximum value of the slider
+              value =c(7.5,11),   # Default value set to the range of the slider
+              step =0.02),        # The step increment of the slider
+  
+  # Define a plot output UI element
+  plotOutput("plotlabel")
+)
+
+# Define server logic required to render the plot based on slider input
+server <-function(input, output){
+  # Render plot based on the input from the slider
+  output$plotlabel <- renderPlot({
+    # Filter the 'sleep' data based on the slider values
+    filter(sleep,
+           `Avg hrs per day sleeping` >= input$sliderlabel[1],
+           `Avg hrs per day sleeping` <= input$sliderlabel[2]) %>%
+      ggplot() +
+      # Create a boxplot of the average hours per day sleeping
+      geom_boxplot(aes(x=`Avg hrs per day sleeping`))
+  })
+}
+
+# Create a Shiny app object that consists of UI and server components
+shinyApp(ui, server)
+
+   
+
+```
+
+# Exercise 1 textOutput with interactions
+Suppose you work for a sleep clinic in America. In your efforts to ascertain the sleep hygiene of Americans, you carried out a survey. Now that you have data, you would like to report your findings.
+
+Instead of submitting a static report, you decide that an interactive application will be more engaging for your audience.
+
+Suppose you would first like your user to input her city of residence as part of the user experience. This should be done in such a way that the text output will be updated based on what the user enters.
+
+To this end, you will work with the textInput() function.
+
+### Instruction 1 
+Add textInput() to the UI and label it as "city label".
+Leave the value blank and set the placeholder as "Singapore".
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  # Add textInput and label it as "city label"
+  ___(___,
+            "Which city do you live in?",
+            # Leave the value blank and set the placeholder as "Singapore"
+            value = ___, placeholder = ___))
+
+server <- function(input, output) {
+}
+
+shinyApp(ui, server)
+```
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  # Add textInput and label it as "city label"
+  textInput("city label",
+            "Which city do you live in?",
+            # Leave the value blank and set the placeholder as "Singapore"
+            value = "", placeholder = "Singapore"))
+
+server <- function(input, output) {
+}
+
+shinyApp(ui, server)
+```
+
+### Instruction 2
+
+Add textOutput() to the UI and label it as "textoutput".
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  textInput("city label",
+            "Which city do you live in?",
+            value = "", placeholder = "Singapore"),
+  # Add textOutput and label it as "textoutput"
+  ___)
+
+server <- function(input, output) {
+}
+
+shinyApp(ui, server)
+```
+
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  textInput("city label",
+            "Which city do you live in?",
+            value = "", placeholder = "Singapore"),
+  # Add textOutput and label it as "textoutput"
+  textOutput("textoutput"))
+
+server <- function(input, output) {
+}
+
+shinyApp(ui, server)
+```
+
+### Instruction 3
+Define the text output in the server by calling the renderText() function.
+
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  textInput("city label",
+            "Which city do you live in?",
+            value = "", placeholder = "Singapore"),
+  textOutput("textoutput"))
+
+server <- function(input, output) {
+  # Define the text output
+  output$textoutput <- ___(paste0(
+    "Sleep deprivation is a serious health issue in many major cities around the world, for example ", 
+    input$`city label`,"."))
+}
+
+shinyApp(ui, server)
+```
+
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  textInput("city label",
+            "Which city do you live in?",
+            value = "", placeholder = "Singapore"),
+  textOutput("textoutput"))
+
+server <- function(input, output) {
+  # Define the text output
+  output$textoutput <- renderText(paste0(
+    "Sleep deprivation is a serious health issue in many major cities around the world, for example ", 
+    input$`city label`,"."))
+}
+
+shinyApp(ui, server)
+```
+
+## Exercise 2 Dropdown menus
+You have seen how drop-down menus can be added to a shinyApp. This allows the app user to pick an option out of a list of options, while occupying a small amount of space. This can make for a good UI design if there are already many other features added to the app.
+
+In this exercise, the data has been stored as sleep and a plot called p is a boxplot. The shiny and tidyverse libraries have also been loaded. When you have completed the code, you can open the shinyApp in a HTML Viewer for a more complete view.
+
+### Instruction 1
+
+Place a selectInput() with two choices called "Plot" and "Table".
+Place a plotOutput() and tableOutput() called "plot" and "table".
+Add the plot output to the server.
+Add the table output to the server.
+
+#### Hint
+
+Output and input functions ought to be placed in the UI.
+Look at the arguments required for each input and output function.
+Outputs can be rendered in the app only if the appropriate render functions are added to the server function.
+Use the $ notation in the server.
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  # Place a selectInput with two choices, "Plot" and "Table"
+  ___("choice", "Choose an output",
+              choices = ___),
+  # Place plot and table outputs called "plot" and "table"
+  ___("plot"), ___)
+server <- function(input, output) {
+  # Add renderPlot
+  output$plot <- ___({
+    if(input$choice == "Plot") p
+  })
+  # Add renderTable
+  output$___ <- ___({
+    if(input$choice == "Table") sleep
+  }) }
+shinyApp(ui, server)
+```
+
+
+```{r}
+
+
+# UI
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  # Place a selectInput with two choices, "Plot" and "Table"
+  selectInput("choice", "Choose an output", choices = c("Plot", "Table")),
+  # Conditional UI to display either plot or table based on the selection
+  uiOutput("outputUI")
+)
+
+# Server
+server <- function(input, output) {
+  # Add renderUI for conditional UI
+  output$outputUI <- renderUI({
+    if (input$choice == "Plot") {
+      plotOutput("plot")
+    } else if (input$choice == "Table") {
+      tableOutput("table")
+    }
+  })
+  
+  # Add renderPlot
+  output$plot <- renderPlot({
+    # Define the ggplot object 'p' to be rendered when "Plot" is chosen
+    if(input$choice == "Plot") {
+      p <- sleep %>%
+        ggplot() +
+        geom_boxplot(aes(x=`Avg hrs per day sleeping`))
+      print(p)  # Print the ggplot object 'p'
+    }
+  })
+  
+  # Add renderTable
+  output$table <- renderTable({
+    # Display the 'sleep' data as a table when "Table" is chosen
+    if(input$choice == "Table") sleep
+  })
+}
+
+# Run the Shiny app
+shinyApp(ui, server)
+
+```
+## Exercise 3 Your first shinyApp
+You have seen how inputs and outputs can be put together in a shinyApp. You have also seen how a shinyApp can be constructed to communicate results from the sleep study.
+
+Your goal now is to create a shinyApp to report two main results:
+
+The distribution of sleep hours
+The median sleep hours amongst different age groups
+In this exercise, we have stored the data in the form of a dplyr data frame called sleep, and the shiny and tidyverse libraries have already been loaded.
+
+Now it's your turn to create your own shinyApp!
+
+Add two plot outputs called "histogram" and "barchart" to the mainPanel.
+In the choiceNames argument in checkboxGroupInput(), replace its contents with icons called "calendar", "briefcase" and "gift".
+Define the two outputs, one called histogram, and another called barchart.
+Use the shinyApp() function to render the shiny app.
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  fluidRow(
+  # Place two plots here, called "histogram" and "barchart"
+  mainPanel(___("histogram"), ___("barchart")), 
+  inputPanel(sliderInput("binwidth", 
+                         label = "Bin width", 
+                         min = 0.1, max = 2, 
+                         step = 0.01, value=0.25),
+             checkboxGroupInput("days", "Choose types of days:",
+                                # Replace the list elements with icons called "calendar", "briefcase" and "gift"
+                                choiceNames = list("All days", 
+                                                   "Non-holiday weekdays", 
+                                                   "Weekend days/holidays"), 
+                                choiceValues = list("All days", 
+                                                    "Nonholiday weekdays", 
+                                                    "Weekend days and holidays"))), 
+  "In general, across the different age groups, Americans seem to get adequate daily rest." ))
+
+server <- function(input, output, session) {
+  # Define the histogram and barchart
+  output$histogram <- ___({
+    ggplot(sleep, aes(x=`Avg hrs per day sleeping`)) + 
+    geom_histogram(binwidth = input$binwidth, col='white') + 
+    theme_classic()
+  })
+  ___ <- ___({
+    filter(sleep, `Type of Days` %in% input$days) %>%
+      group_by(`Type of Days`, `Age Group`) %>%
+      summarize(`Median hours` = median(`Avg hrs per day sleeping`)) %>%
+      ggplot(aes(x = `Median hours`, y = `Age Group`, fill = `Type of Days`)) +
+      geom_col(position = 'dodge') + theme_classic()
+  })
+}
+
+# Use shinyApp() to render the shinyApp
+```
+
+
+```{r}
+
+
+ui <- fluidPage(
+  titlePanel("Sleeping habits in America"), 
+  fluidRow(
+  # Place two plots here, called "histogram" and "barchart"
+  mainPanel(plotOutput("histogram"), plotOutput("barchart")),
+  inputPanel(sliderInput("binwidth", 
+                         label = "Bin width", 
+                         min = 0.1, max = 2, 
+                         step = 0.01, value=0.25),
+             checkboxGroupInput("days", "Choose types of days:",
+                                # Replace the list elements with icons called "calendar", "briefcase" and "gift"
+                                choiceNames = list(icon("calendar"), 
+                                                   icon("briefcase"), 
+                                                   icon("gift")),
+                                choiceValues = list("All days", 
+                                                    "Nonholiday weekdays", 
+                                                    "Weekend days and holidays"))), 
+  "In general, across the different age groups, Americans seem to get adequate daily rest." ))
+
+server <- function(input, output, session) {
+  # Define the histogram and barchart
+  output$histogram <- renderPlot({
+    ggplot(sleep, aes(x=`Avg hrs per day sleeping`)) + 
+    geom_histogram(binwidth = input$binwidth, col='white') + 
+    theme_classic()
+  })
+  output$barchart <- renderPlot({
+    filter(sleep, `Type of Days` %in% input$days) %>%
+      group_by(`Type of Days`, `Age Group`) %>%
+      summarize(`Median hours` = median(`Avg hrs per day sleeping`)) %>%
+      ggplot(aes(x = `Median hours`, y = `Age Group`, fill = `Type of Days`)) +
+      geom_col(position = 'dodge') + theme_classic()
+  })
+}
+
+# Use shinyApp() to render the shinyApp
+shinyApp(ui, server)
+```
+
+
+# Chapter 3 shinydashboard
+
+Un tableau de bord shiny est une application shiny avec une sortie de type tableau de bord. On y trouve une interface utilisateur (UI), un serveur et une fonction shinyApp qui les relie. La principale différence réside dans la définition de l'interface utilisateur : on utilise la fonction dashboardPage à la place de fluidPage.
+L'interface utilisateur (UI) dans shinydashboard
+L'UI d'un tableau de bord shiny est un peu plus complexe et comprend trois composants principaux : l'en-tête, la barre latérale et le corps, définis respectivement par les fonctions dashboardHeader, dashboardSidebar et dashboardBody.
+##########################################
+A Shiny dashboard is a Shiny application with a dashboard-type output. It consists of a user interface (UI), a server, and a shinyApp function that connects them. The main difference lies in the definition of the user interface: the function dashboardPage is used instead of fluidPage.
+
+The User Interface (UI) in shinydashboard
+The UI of a Shiny dashboard is a bit more complex and includes three main components: the header, the sidebar, and the body, defined respectively by the functions dashboardHeader, dashboardSidebar, and dashboardBody.
+
+
+**************************************************
+Voici les composants du tableau de bord : l'en-tête en haut, une barre latérale avec des boutons à gauche et le corps principal qui occupe l'espace restant.
+
+Pensez à l'UI comme l'aménagement d'un restaurant et au serveur comme au personnel. L'en-tête, la barre latérale et le corps de l'UI sont similaires à l'enseigne du restaurant, au menu et à la salle à manger, respectivement.
+
+Pour créer un shinydashboard de base, vous importez les bibliothèques shiny et shinydashboard et configurez l'en-tête, la barre latérale et le corps. Le tableau de bord est activé avec une fonction serveur, assemblé avec shinyApp.
+
+#############################################################################
+
+These are the dashboard components: the header at the top, a sidebar with buttons on the left, and the main body that occupies the remaining space.
+
+Think of the UI like a restaurant layout and the server like the staff. The UI's header, sidebar, and body are akin to the restaurant's sign, menu, and dining area respectively.
+
+To create a basic shinydashboard, you import the shiny and shinydashboard libraries and set up the header, sidebar, and body. The dashboard is activated with a server function, assembled with shinyApp.
+
+```{r}
+library(shinydashboard)
+
+# Create the dashboard header with the title 'My first dashboard'
+header <- dashboardHeader(
+  title = "My first dashboard"
+)
+
+# Create the dashboard sidebar (this would be where you put input controls if needed)
+sidebar <- dashboardSidebar()
+# Create an empty dashboard body (content will go here)
+body <- dashboardBody()
+
+# Assemble the UI using the dashboardPage function, with the header, sidebar, and body
+ui <- dashboardPage(
+  header, 
+  sidebar, 
+  body
+)
+
+# Define an empty server function (logic for the app will go here)
+server <- function(input, output) {}
+
+# Launch the Shiny app with the defined UI and server
+shinyApp(ui, server)
+
+```
+
+
+## Exercise 1
+
+```{r}
+soccer <-read_csv("soccer18-19.csv")
+```
+
+## Your first (empty) dashboard
+In this exercise, you will be building a dashboard using data from a certain soccer world tournament which will be referred to "global soccer tournament" from here on. To this end, you decide that a shinydashboard will help you customize a dashboard based on your needs. Before you insert your desired elements in the dashboard, you will first construct an empty shinydashboard -- which will be like a skeleton of sorts.
+
+Set the title of the shinydashboard to "Global soccer tournament".
+Set up an empty side bar in the shinydashboard.
+Set up an empty body for the shinydashboard.
+Set up the UI of the shinydashboard by putting the header, side bar and body together.
+
+```{r}
+# Set the title of the shinydashboard
+header <- ___
+# Set up an empty side bar
+sidebar <- ___
+# Set up an empty body
+body <- ___
+# Set up the shinydashboard UI
+ui <- ___
+server <- function(input, output) {
+}
+
+shinyApp(ui, server)
+```
+
+
+```{r}
+# Set the title of the shinydashboard
+header <- dashboardHeader(title = "Global soccer tournament")
+# Set up an empty side bar
+sidebar <- dashboardSidebar()
+# Set up an empty body
+body <- dashboardBody()
+# Set up the shinydashboard UI
+ui <- dashboardPage(header, sidebar, body)
+
+server <- function(input, output) {
+}
+
+shinyApp(ui, server)
+```
+
+
+# The header and sidebar 
+
+L'interface utilisateur est semblable à un restaurant, avec l'en-tête comme enseigne, la barre latérale comme menu et le corps comme salle principale. On crée le tableau de bord avec shiny et shinydashboard, et on l'active avec un serveur via shinyApp.
+#######################################################################
+The UI is analogous to a restaurant, with the header as the sign, sidebar as the menu, and body as the main hall. You create the dashboard using shiny and shinydashboard, and activate it with a server through shinyApp.
+
+```{r}
+# Import the necessary shinydashboard library
+library(shinydashboard)
+
+# The header acts like the restaurant's sign, giving identity to the dashboard
+header <- dashboardHeader(
+  title = "Analysis for FIFA world cup", # Title is analogous to the name on a restaurant's signboard
+  titleWidth = 300,  # Width of the title area
+  dropdownMenu(type = "messages",    # Dropdown menu for additional interactions like notifications
+                messageItem("Data division", "Keep up the good work!",
+                                             time = "5 mins")))
+
+# The sidebar is like the menu of a restaurant, listing navigation options and tools
+sidebar <- dashboardSidebar() # An empty sidebar, similar to a menu with sections for different pages or tools
+
+# The body is akin to the main dining area of a restaurant, where content is displayed
+body <- dashboardBody() # An empty body, ready to display main content like charts, tables, etc.
+
+# Set up the shinydashboard UI
+ui <- dashboardPage(header, sidebar, body) # Assembling the dashboard with its components
+
+# The server function activates the dashboard, similar to how staff bring a restaurant to life
+server <- function(input, output) {
+  # This is where server-side operations and reactive outputs will be defined
+}
+
+# The shinyApp function combines the UI and server to launch the dashboard, just as the front and back of house come together to open a restaurant
+shinyApp(ui, server)
+
+```
+
+
+# Adding a dropdown menu with a message
+Dans l'en-tête, on peut ajouter des menus déroulants de messages, notifications et tâches. Pour un message, on ajoute un messageItem avec un titre comme "Division des données". L'icône par défaut est celle d'un utilisateur mais cela peut être changé avec l'argument icon. On peut aussi ajouter un texte et un horodatage, même si dans la pratique, ces éléments sont dynamiques.
+
+################################################################
+In the header, you can add dropdown menus for messages, notifications, and tasks. For a message, you add a messageItem with a title like "Data division". The default icon is that of a user, but this can be changed with the icon argument. You can also add text and a timestamp, although in practice, these elements are dynamic.
+
+```{r}
+# Define the dashboard header
+header <- dashboardHeader(  
+  title ="Analysis for global soccer tournament",  # Set the title of the dashboard
+  titleWidth =400,  # Adjust the width of the title to 400 pixels
+
+  # Add a dropdown menu for messages within the header
+  dropdownMenu(type ="messages",   
+               # First message item with a custom title and time
+               messageItem("Data division","Keep up the good work!",     
+                           time ="5 mins"),   
+               # Second message item related to Twitter with its own icon and timestamp
+               messageItem("Twitter","You have a Tweet!",      
+                           time ="1 hour", icon=icon("twitter")))
+)
+
+# Initialize the dashboard sidebar (this is empty for now)
+sidebar <- dashboardSidebar()
+
+# Set up an empty body for the dashboard
+body <- dashboardBody()
+
+# Configure the UI of the shinydashboard using the header, sidebar, and body components
+ui <- dashboardPage(header, sidebar, body)
+
+# Define a server function (this is empty for now)
+server <- function(input, output) {
+  # Server-side code would go here
+}
+
+# Create the shiny app with the defined UI and server
+shinyApp(ui, server)
+
+```
+
+
+# Ajout d'un menu déroulant avec plusieurs messages
+Un tableau de bord Shiny est conçu pour être modulaire, ce qui facilite l'ajout de nouveaux éléments. Par exemple, vous pouvez intégrer un autre messageItem avec l'icône de Twitter dans le menu déroulant.
+
+Il est également possible de diversifier les éléments dans un menu déroulant, en ajoutant par exemple un notificationItem avec une icône de triangle d'avertissement et un taskItem qui comprend une barre de progression.
+
+De plus, il est possible d'ajouter d'autres menus déroulants au tableau de bord, comme un menu de notifications qui affichera des éléments de notification sur le tableau de bord.
+
+############################################
+
+A Shiny dashboard is designed to be modular, which makes it easy to add new elements. For example, you can incorporate another messageItem with a Twitter icon into the dropdown menu.
+
+It's also possible to diversify the items in a dropdown menu, by adding, for instance, a notificationItem with a warning triangle icon and a taskItem that includes a progress bar.
+
+Furthermore, you can add additional dropdown menus to the dashboard, such as a notifications menu that will display notification items on the dashboard.
+
+```{r}
+
+
+# Define the dashboard header with a title and a specified width
+header <- dashboardHeader(
+  title = "Analysis for global soccer tournament",
+  titleWidth = 400,
+  # Adding a dropdown menu with various message items
+  dropdownMenu(type = "messages",
+               # Adding a message item for data division encouragement
+               messageItem("Data division", "Keep up the good work!",
+                           time = "5 mins"),
+               # Adding a Twitter message item with a custom icon
+               messageItem("Twitter", "You have a Tweet!",
+                           time = "1 hour", icon = icon("twitter")),
+               # Adding a generic notification item
+               notificationItem("This is a notification."),
+               # Adding a task item with a progress bar
+               taskItem(value = 30, color = "blue", "Dashboard construction")
+  ),
+  # Adding another dropdown menu for notifications
+  dropdownMenu(type = "notifications",
+               # Adding a user notification with a custom icon
+               notificationItem(icon = icon("users"), "This is another notification.")
+  )
+)
+
+# Define an empty dashboard sidebar
+sidebar <- dashboardSidebar()
+
+# Define an empty dashboard body
+body <- dashboardBody()
+
+# Define the UI for a shinydashboard with header, sidebar, and body
+ui <- dashboardPage(header, sidebar, body)
+
+# Define an empty server logic for the shiny app
+server <- function(input, output) {
+  # Server logic goes here
+}
+
+# Combine the UI and server to build the shiny app
+shinyApp(ui, server)
+
+
+
+```
+
+
+# The sidebar
+
+La barre latérale, configurée avec dashboardSidebar, peut contenir un sidebarMenu pour organiser les pages du tableau de bord. Des boutons de navigation, tels que "Graphiques" et "Statistiques", sont créés à l'aide de menuItems. Le sidebarMenu peut être désactivé si nécessaire. De plus, vous pouvez utiliser les arguments badgeLabel et badgeColor pour ajouter des badges colorés à côté des boutons pour mettre visuellement l'accent sur ceux-ci.
+##########################################
+
+The sidebar, configured with dashboardSidebar, can hold a sidebarMenu for organizing dashboard pages. Navigation buttons within it, like "Charts" and "Statistics," are created using menuItems. The sidebarMenu can be turned off if not needed. Additionally, you can use badgeLabel and badgeColor arguments to add colorful badges next to the buttons for visual emphasis.
+
+```{r}
+# Define the dashboard header
+header <- dashboardHeader( 
+  # Set the title of the dashboard and its width
+  title = "Analysis for global soccer tournament",  
+  titleWidth = 400,  
+  # Add a dropdown menu for messages with custom items
+  dropdownMenu(type = "messages",   
+               # Add a message regarding data division with a timestamp
+               messageItem("Data division", "Keep up the good work!",   
+                           time = "5 mins"),  
+               # Add a message from Twitter with an associated icon and timestamp
+               messageItem("Twitter", "You have a Tweet!",    
+                           time = "1 hour", icon = icon("twitter")),
+               # Add a generic notification item
+               notificationItem("This is a notification."),   
+               # Add a task item with a progress bar
+               taskItem(value = 30, color = "blue", "Dashboard construction")),  
+  # Add another dropdown menu for notifications
+  dropdownMenu(type = "notifications",                                                                                               
+               # Include a notification with a users icon
+               notificationItem(icon = icon("users"), "This is another notification."))
+)
+
+# Define the dashboard sidebar
+sidebar <- dashboardSidebar(width = 400,  
+  # Set up a sidebar menu with IDs for page management
+  sidebarMenu(    
+    id = "pages",    
+    # Add a menu item for charts with an icon, badge label, and color
+    menuItem("Many charts", tabName = "charts",             
+             icon = icon("chart-line"),             
+             badgeLabel = "New content!",            
+             badgeColor = "green"),   
+    # Add a menu item for statistics with an icon, badge label, and color
+    menuItem("Statistics", icon = icon("file-excel"),             
+             tabName = "stats",            
+             badgeLabel = "urgent",            
+             badgeColor = "red"))
+)
+
+# Initialize an empty body for the dashboard
+body <- dashboardBody()
+
+# Set up the shinydashboard UI with the defined header, sidebar, and body
+ui <- dashboardPage(header, sidebar, body)
+
+# Define a placeholder server function, no operations defined yet
+server <- function(input, output) {
+}
+
+# Launch the shiny app with the UI and server components
+shinyApp(ui, server)
+
+
+```
+
+
+# Adding Sub-tabs
+
+Pour organiser davantage, on peut inclure des sous-onglets dans la barre latérale avec menuSubItem. Les badges ne sont pas applicables aux onglets contenant des sous-onglets.
+
+######################################################
+
+To further organize, one can include sub-tabs in the sidebar with menuSubItem. Badges are not applicable to tabs containing sub-tabs.
+
+```{r}
+# Header setup with various dropdowns for messages, notifications, and tasks
+header <- dashboardHeader(
+  title = "Analysis for global soccer tournament",
+  titleWidth = 400,
+  dropdownMenu(
+    type = "messages",
+    messageItem("Data division", "Keep up the good work!", time = "5 mins"),
+    messageItem("Twitter", "You have a Tweet!", time = "1 hour", icon = icon("twitter")),
+    notificationItem("This is a notification."),
+    taskItem(value = 30, color = "blue", "Dashboard construction")
+  ),
+  dropdownMenu(
+    type = "notifications",
+    notificationItem(icon = icon("users"), "This is another notification.")
+  )
+)
+
+# Sidebar with a menu for navigation
+# width set to 400 for a wider sidebar
+sidebar <- dashboardSidebar(
+  width = 400,
+  sidebarMenu(
+    id = "pages",
+    menuItem("Many charts",
+             tabName = "charts",
+             icon = icon("chart-line"),
+             badgeLabel = "New content!",
+             badgeColor = "green"),
+    menuItem("Statistics",
+             tabName = "stats",
+             icon = icon("file-excel"),
+             badgeLabel = "urgent",
+             badgeColor = "red")
+    # Note: menuSubItem would be used here if we were to add sub-tabs
+    # Badges are not used with sub-tabs as per the given instructions
+  )
+)
+
+# Body setup (currently empty)
+body <- dashboardBody()
+
+# Define the UI component of the Shiny dashboard
+ui <- dashboardPage(header, sidebar, body)
+
+# Define the server component of the Shiny dashboard (currently without functionality)
+server <- function(input, output) {
+}
+
+# Combine the UI and server to create the Shiny application
+shinyApp(ui, server)
+
+
+```
+
+# Adding Inputs and Outputs to the Sidebar
+Finalement, la barre latérale peut aussi accueillir des entrées et des sorties, comme un checkboxGroupInput, qui nécessite la définition correspondante dans la fonction serveur et se rendra comme dans une application shiny classique.
+###########################################################
+
+Finally, the sidebar can also accommodate inputs and outputs, such as a checkboxGroupInput, which requires the corresponding definition in the server function and will render as in a classic shiny application
+
+```{r}
+# Define the dashboard header with title and dropdown menus for messages and notifications
+header <- dashboardHeader(
+  title = "Analysis for global soccer tournament",
+  titleWidth = 400,
+  dropdownMenu(type = "messages",
+               messageItem("Data division", "Keep up the good work!", time = "5 mins"),
+               messageItem("Twitter", "You have a Tweet!", time = "1 hour", icon = icon("twitter")),
+               notificationItem("This is a notification."),
+               taskItem(value = 30, color = "blue", "Dashboard construction")),
+  dropdownMenu(type = "notifications",
+               notificationItem(icon = icon("users"), "This is another notification."))
+)
+
+# Define the dashboard sidebar with width and menu items, including checkboxes as input
+sidebar <- dashboardSidebar(width = 400,
+                            sidebarMenu(
+                              id = "pages",
+                              menuItem("Many charts", tabName = "charts",
+                                       icon = icon("chart-line"),
+                                       badgeLabel = "New content!",
+                                       badgeColor = "green"),
+                              menuItem("Statistics", icon = icon("file-excel"),
+                                       tabName = "stats",
+                                       menuSubItem("Team 1", tabName = "team1", icon = icon("user")),
+                                       menuSubItem("Team 2", tabName = "team2", icon = icon("user"))),
+                              menuItem("A couple of checkboxes",
+                                       # Insert checkboxes into the sidebar for user interaction
+                                       checkboxGroupInput("checkboxes", "Day of the week",
+                                                          choices = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"),
+                                                          selected = c("Mon", "Tue", "Wed", "Thu", "Fri"))
+                              )
+                            ))
+
+# Define an empty dashboard body
+body <- dashboardBody()
+
+# Define the shinydashboard UI with the above header, sidebar, and body
+ui <- dashboardPage(header, sidebar, body)
+
+# Define a server function that will handle server-side logic and outputs
+server <- function(input, output) {
+  # Server logic would go here
+}
+
+# Create the shiny app with the UI and server defined above
+shinyApp(ui, server)
+
+```
+
+## Exercise 2 Setting a header
+In this course, the header was likened to the signboard or front-end of a restaurant.
+
+In the header, the title of the shinydashboard is defined, and additional elements can be added. Particularly, you saw various types of dropdown lists containing various types of items.
+
+In this exercise, imagine that you have already carried out an analysis of some statistics for a global soccer tournament. You now want to create a dashboard as a means to present these results. To this end, you will first set up the header.
+
+Set the title as "Analysis results for global soccer tournament"
+Set the title width to 400.
+Create one dropdown list of type "messages" containing one message item.
+Add another dropdown list of type "notifications" containing one notification and one task item.
+
+```{r}
+header <- dashboardHeader(
+  # Set the title as "Analysis results for global soccer tournament"
+  ___,
+  # Set the title width to 400
+  ___,
+  # Add a dropdown menu containing two messages
+  dropdownMenu(type = ___,
+       ___("Colleague", "Hello world!")),
+  # Add another dropdown menu containing two other items
+  ___(___,
+       ___("Have you rested today?"),
+       ___("Dashboard completion", value = 20)))
+sidebar <- dashboardSidebar(); body <- dashboardBody()
+ui <- dashboardPage(header, sidebar, body); server <- function(input, output){}
+shinyApp(ui, server)
+```
+ 
+ 
+```{r}
+header <- dashboardHeader(
+  # Set the title as "Analysis results for global soccer tournament"
+  title = "Analysis results for global soccer tournament",
+  # Set the title width to 400
+  titleWidth = 400,
+  # Add a dropdown menu containing two messages
+  dropdownMenu(type = "messages",
+       messageItem("Colleague", "Hello world!")),
+  # Add another dropdown menu containing two other items
+  dropdownMenu(type = "notifications",
+       notificationItem("Have you rested today?"),
+       taskItem("Dashboard completion", value = 20)))
+sidebar <- dashboardSidebar(); body <- dashboardBody()
+ui <- dashboardPage(header, sidebar, body); server <- function(input, output){}
+shinyApp(ui, server)
+```
+ 
+ 
+## Exercise 3 Setting a sidebar
+The sidebar can be likened to a list of available courses or meals in a restaurant.
+
+In the sidebar, you can add a menu using sidebarMenu(), in which you can add several buttons that can link you to different dashboard pages using menuItem(). You also saw that the usual inputs and outputs can be added to the sidebar. What are the objects that could be useful in the sidebar of dashboard showcasing soccer data?
+
+In this example, you will practice adding some of these objects to your dashboard sidebar.
+Set up a sidebar menu with width 400.
+Add a tab button called "Match details", which has the "futbol" icon and a green badge.
+
+```{r}
+sidebar <- dashboardSidebar(
+  # Set up a sidebar menu with width 400
+  ___(
+    width = ___,
+    id = "pages",
+ 	# Add a tab button called "Match details"
+    ___(___, tabName = "matches", icon = ___,
+             badgeLabel = "New content!", badgeColor = ___)
+  )
+)
+
+body <- dashboardBody()
+ui <- dashboardPage(header, sidebar, body)
+server <- function(input, output){}
+shinyApp(ui, server)
+```
+
+```{r}
+header <- dashboardHeader(
+  title = "Analysis results for global soccer tournament",
+  titleWidth = 400,
+  dropdownMenu(type = "messages",
+       messageItem("Colleague", "Hello world!")),
+  dropdownMenu(type = "notifications",
+       notificationItem("Have you rested today?"),
+       taskItem("Dashboard completion", value = 20)))
+
+sidebar <- dashboardSidebar(
+  # Set up a sidebar menu with width 400
+  sidebarMenu(
+    width = 400,
+    id = "pages",
+ 	# Add a tab button called "Match details"
+    menuItem("Match details", tabName = "matches", icon = icon("futbol"),
+             badgeLabel = "New content!", badgeColor = "green")
+  )
+)
+
+body <- dashboardBody()
+ui <- dashboardPage(header, sidebar, body)
+server <- function(input, output){}
+shinyApp(ui, server)
+```
+
+In the next tab button, add two subtabs to "Overall results", called "Charts" and "Data table".
+
+```{r}
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    width = 400,
+    id = "pages",
+    menuItem("Match details", tabName = "matches", icon = icon("futbol"),
+             badgeLabel = "New content!", badgeColor = "green"),
+    menuItem("Overall results", tabName = "overall", 
+            # Add two subtabs called "Charts" and "Data table"
+            ___(___, tabName = "charts"),
+            ___(___, tabName = "datatable", icon=icon("file-excel")))
+  )
+)
+
+body <- dashboardBody()
+ui <- dashboardPage(header, sidebar, body)
+server <- function(input, output){}
+shinyApp(ui, server)
+```
+
+```{r}
+header <- dashboardHeader(
+  title = "Analysis results for global soccer tournament",
+  titleWidth = 400,
+  dropdownMenu(type = "messages",
+       messageItem("Colleague", "Hello world!")),
+  dropdownMenu(type = "notifications",
+       notificationItem("Have you rested today?"),
+       taskItem("Dashboard completion", value = 20)))
+
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    width = 400,
+    id = "pages",
+    menuItem("Match details", tabName = "matches", icon = icon("futbol"),
+             badgeLabel = "New content!", badgeColor = "green"),
+    menuItem("Overall results", tabName = "overall", 
+            # Add two subtabs called "Charts" and "Data table"
+            menuSubItem("Charts", tabName = "charts"),
+            menuSubItem("Data table", tabName = "datatable", icon=icon("file-excel")))
+  )
+)
+
+body <- dashboardBody()
+ui <- dashboardPage(header, sidebar, body)
+server <- function(input, output){}
+shinyApp(ui, server)
+```
+
+
+Place a slider in a new tab called "Number of goals
+
+```{r}
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    width = 400,
+    id = "pages",
+    menuItem("Match details", tabName = "matches", icon = icon("futbol"),
+             badgeLabel = "New content!", badgeColor = "green"),
+    menuItem("Overall results", tabName = "overall", 
+            menuSubItem("Charts", tabName = "charts"),
+            menuSubItem("Data table", tabName = "datatable", icon=icon("file-excel"))),
+    # Place a slider in a new tab called "Number of goals"
+    ___("A slider",  ___("slider", ___, min=0, max=10, value = 2))
+  )
+)
+
+body <- dashboardBody()
+ui <- dashboardPage(header, sidebar, body)
+server <- function(input, output){}
+shinyApp(ui, server)
+```
+
+```{r}
+header <- dashboardHeader(
+  title = "Analysis results for global soccer tournament",
+  titleWidth = 400,
+  dropdownMenu(type = "messages",
+       messageItem("Colleague", "Hello world!")),
+  dropdownMenu(type = "notifications",
+       notificationItem("Have you rested today?"),
+       taskItem("Dashboard completion", value = 20)))
+
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    width = 400,
+    id = "pages",
+    menuItem("Match details", tabName = "matches", icon = icon("futbol"),
+             badgeLabel = "New content!", badgeColor = "green"),
+    menuItem("Overall results", tabName = "overall", 
+            menuSubItem("Charts", tabName = "charts"),
+            menuSubItem("Data table", tabName = "datatable", icon=icon("file-excel"))),
+    # Place a slider in a new tab called "Number of goals"
+    menuItem("A slider",  sliderInput("slider", "Number of goals", min=0, max=10, value = 2))
+  )
+)
+
+body <- dashboardBody()
+ui <- dashboardPage(header, sidebar, body)
+server <- function(input, output){}
+shinyApp(ui, server)
+```
+
+
+# The body 
+
+Nous allons explorer le corps principal de l'interface utilisateur de Shiny, qui abrite les composants clés tels que les entrées et les sorties, analogues aux plats et commandes dans un restaurant. La gestion de la largeur des conteneurs est cruciale pour prévenir tout débordement, étant donné que la largeur maximale est de 12 unités.
+
+Pour structurer notre interface, nous entreprenons d'abord la création d'une maquette, définissant l'emplacement des composants avant d'y incorporer le contenu, à l'instar de l'élaboration de la structure d'un zeppelin avant son revêtement.
+
+Des rangées sont insérables avec fluidRow et des conteneurs avec box. Dans notre cas, nous avons arrangé deux rangées incluant plusieurs boîtes. Chaque boîte peut loger des éléments tels que plotOutput ou selectInput.
+#################################################################
+
+We will delve into the main body of the Shiny user interface, which houses key components such as inputs and outputs, similar to dishes and orders in a restaurant. Managing the width of containers is essential to prevent overflow, given that the total width is 12 units.
+
+To structure our interface, we first begin with "wireframing," which determines the placement of components before adding content, much like constructing the metallic frame of a zeppelin before dressing it.
+
+Rows can be added with fluidRow and containers with box. In our example, we've arranged two rows containing multiple boxes. Each box can house elements such as plotOutput or selectInput.
+
+
+```{r}
+# Define the dashboard header with a custom title and a fixed width.
+# Add drop-down menus for messages and notifications with custom items.
+header <- dashboardHeader(
+  title = "Analysis results for global soccer tournament",
+  titleWidth = 400,
+  # Message drop-down with one item
+  dropdownMenu(type = "messages",
+               messageItem("Colleague", "Hello world!")),
+  # Notifications drop-down with a notification and a task progress
+  dropdownMenu(type = "notifications",
+               notificationItem("Have you rested today?"),
+               taskItem("Dashboard completion", value = 20))
+)
+
+# Define the dashboard sidebar with a fixed width.
+# Include menu items with badges and sub-menu items for detailed navigation.
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    width = 400,
+    id = "pages",
+    # Main menu item for match details with a badge indicating new content
+    menuItem("Match details", tabName = "matches", icon = icon("futbol"),
+             badgeLabel = "New content!", badgeColor = "green"),
+    # Main menu item for overall results with sub-items for charts and data tables
+    menuItem("Overall results", tabName = "overall", 
+             menuSubItem("Charts", tabName = "charts"),
+             menuSubItem("Data table", tabName = "datatable", icon=icon("file-excel"))),
+    # Additional menu item for a slider input to filter data by the number of goals
+    menuItem("A slider", sliderInput("slider", "Number of goals", min=0, max=10, value = 2))
+  )
+)
+
+# Define the dashboard body, structuring it with rows and boxes, akin to the layout of a restaurant's kitchen.
+# Boxes are used to house main elements such as outputs and inputs, and their width is managed to avoid overflow.
+body <- dashboardBody(
+  # First row with three boxes of different widths
+  fluidRow(
+    box("Row 1, box 1", width=3),           
+    box("Row 1, box 2", width=5),           
+    box("Row 1, box 3", width=4)
+  ),  
+  # Second row with two boxes, showcasing the flexible grid layout
+  fluidRow(
+    box("Row 2, box 1"),           
+    box("Row 2, box 2")
+  )
+)
+
+# Combine header, sidebar, and body into a dashboard page
+ui <- dashboardPage(header, sidebar, body)
+
+# Define server logic for the Shiny app, currently placeholder as there's no server-side logic needed for this layout
+server <- function(input, output){}
+
+# Create and run the Shiny app with the defined UI and server components
+shinyApp(ui, server)
+
+```
+
+Nous utilisons aussi des valueBox et infoBox pour afficher des informations concises. Les variantes dynamiques sont valueBoxOutput et infoBoxOutput, qui peuvent interagir avec les entrées de l'utilisateur et nécessitent renderValueBox et renderInfoBox dans le serveur pour fonctionner.
+#######################################################################
+
+We also use valueBox and infoBox to display concise information. The dynamic variants are valueBoxOutput and infoBoxOutput, which can interact with user inputs and require renderValueBox and renderInfoBox on the server side to function.
+```{r}
+
+# Header section of the dashboard
+header <- dashboardHeader(
+  title = "Analysis results for global soccer tournament",  # Set the title of the dashboard
+  titleWidth = 400,  # Define the width of the title area
+  dropdownMenu(type = "messages",  # Add a dropdown menu for messages
+       messageItem("Colleague", "Hello world!")),  # Include a message item with a greeting
+  dropdownMenu(type = "notifications",  # Add a dropdown for notifications
+       notificationItem("Have you rested today?"),  # A gentle reminder as a notification
+       taskItem("Dashboard completion", value = 20))  # Progress indicator for dashboard completion
+)
+
+# Sidebar section containing the navigation menu
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    width = 400,  # Set the width of the sidebar
+    id = "pages",  # Assign an ID for the menu to enable navigation
+    menuItem("Match details", tabName = "matches", icon = icon("futbol"),  # Menu item for match details
+             badgeLabel = "New content!", badgeColor = "green"),  # A badge indicating new content available
+    menuItem("Overall results", tabName = "overall",  # Menu item for overall results
+            menuSubItem("Charts", tabName = "charts"),  # Sub-item for charts under overall results
+            menuSubItem("Data table", tabName = "datatable", icon=icon("file-excel"))),  # Sub-item for data tables with an Excel icon
+    # Adding a slider input for users to select the number of goals
+    menuItem("A slider",  sliderInput("slider", "Number of goals", min=0, max=10, value = 2))  # Slider input for selecting a range of values
+  )
+)
+
+# Body section with content displayed in the main panel
+body <- dashboardBody(  
+  fluidRow(
+    valueBox(value =3,  # Display a value box with the number of red cards awarded
+             subtitle ="Total no. of red cards awarded",   
+             icon = icon("user"),  # Icon representing users, metaphorically players here
+             color ="red"),  # Color theme for the value box
+    infoBox(value =158,  # Display an info box with the total number of goals scored
+            title ="Total no. of goals scored",                   
+            icon = icon("futbol"))  # Icon representing a soccer ball
+))
+
+# Define the UI layout of the dashboard by assembling the header, sidebar, and body
+ui <- dashboardPage(header, sidebar, body)
+
+# Server function to handle the logic (empty in this example)
+server <- function(input, output){}
+
+# Launch the Shiny app with the specified UI and server function
+shinyApp(ui, server)
+
+```
+
+## Analogy between valueBoxOutput and plotOutput
+plotOutput() :
+Placed in the UI
+Determines its position in the shinydashboard
+
+renderPlot() :
+Placed in server()
+Contains a ggplot() object
+
+valueBoxOutput() :
+Placed in the UI
+Determines its position in the shinydashboard
+
+renderValueBox() :
+Placed in server()
+Contains a valueBox() object
+
+```{r}
+# Header configuration of the dashboard
+header <- dashboardHeader(
+  title = "Analysis results for global soccer tournament",  # Dashboard title
+  titleWidth = 400,  # Width allocated for the title
+  dropdownMenu(type = "messages",  # Menu for messages
+       messageItem("Colleague", "Hello world!")),  # Example message
+  dropdownMenu(type = "notifications",  # Menu for notifications
+       notificationItem("Have you rested today?"),  # Example notification
+       taskItem("Dashboard completion", value = 20))  # Progress of a task
+)
+
+# Sidebar with navigation options
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    width = 400,  # Width of the sidebar
+    id = "pages",  # Identifier for menu to manage navigation
+    menuItem("Match details", tabName = "matches", icon = icon("futbol"),  # Menu item for match details
+             badgeLabel = "New content!", badgeColor = "green"),  # Badge indicating new content
+    menuItem("Overall results", tabName = "overall",  # Menu item for overall results
+            menuSubItem("Charts", tabName = "charts"),  # Sub-menu for charts
+            menuSubItem("Data table", tabName = "datatable", icon=icon("file-excel"))),  # Sub-menu for data tables
+    # Slider input to interactively select a value
+    menuItem("A slider", sliderInput("slider", "Number of goals", min=0, max=10, value = 2))
+  )
+)
+
+# Main body of the dashboard
+body <- dashboardBody(  
+  fluidRow(
+    # Placeholder for a valueBox, to be rendered on the server side
+    valueBoxOutput(outputId ="valuebox1"),  # UI placeholder for the dynamic value box
+    # Placeholder for an infoBox, to be rendered on the server side
+    infoBoxOutput(outputId ="infobox1"))  # UI placeholder for the dynamic info box
+)
+
+# UI layout definition using header, sidebar, and body
+ui <- dashboardPage(header, sidebar, body)
+
+# Server logic of the Shiny app
+server <- function(input, output) {  
+  # Server-side rendering of a valueBox, similar to plotOutput but for value boxes
+  output$valuebox1 <- renderValueBox(    
+    # Create a value box displaying a single value, analogous to displaying a plot in a plotOutput
+    valueBox(3,"Total no. of red cards awarded", icon = icon("user"), color ="red"))  
+  
+  # Server-side rendering of an infoBox, displaying concise information dynamically
+  output$infobox1 <- renderInfoBox(    
+    # Create an info box for displaying a piece of information, just like a plot but for textual data
+    infoBox(158, title ="Total no. of goals scored", icon = icon("futbol")))
+}
+
+# Run the Shiny app with the defined UI and server components
+shinyApp(ui, server)
+
+```
+
+# Linking the sidebar and body
+Pour lier la barre latérale avec le corps, nous utilisons tabItems, où chaque page est définie par tabItem. Les onglets dans le corps peuvent également être définis à l'aide de tabsetPanel, qui n'est pas à confondre avec tabItems et tabItem.
+
+##########################################################
+To link the sidebar with the body, we use tabItems, where each page is defined by a tabItem. The tabs in the body can also be defined using tabsetPanel, which should not be confused with tabItems and tabItem.
+
+```{r}
+# Header of the dashboard: This is akin to the restaurant's signage, providing the name and primary information
+header <- dashboardHeader(
+  title = "Analysis results for global soccer tournament", # The main title of the dashboard
+  titleWidth = 400, # The width of the title area
+  dropdownMenu(type = "messages", messageItem("Colleague", "Hello world!")), # A dropdown for messages like a mailbox at the entrance
+  dropdownMenu(type = "notifications", notificationItem("Have you rested today?"), taskItem("Dashboard completion", value = 20)) # A dropdown for notifications, reminding you to take breaks like a maître d’ would
+)
+
+# Sidebar: Similar to a menu that diners peruse, this sidebar lets users choose what 'dish' or data they want to see
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    width = 400, # The width of the sidebar, ensuring all 'menu options' are clearly visible
+    id = "pages", # Identifier for different 'menu pages'
+    menuItem("Match details", tabName = "matches", icon = icon("futbol"), badgeLabel = "New content!", badgeColor = "green"), # A 'menu item' for match details
+    menuItem("Overall results", tabName = "overall", menuSubItem("Charts", tabName = "charts"), menuSubItem("Data table", tabName = "datatable", icon=icon("file-excel"))), # A 'menu item' for overall results, with 'sub-dishes' for charts and data tables
+    menuItem("A slider", sliderInput("slider", "Number of goals", min=0, max=10, value = 2)) # An interactive 'menu item' allowing for input of number of goals, like choosing the spiciness level of a dish
+  )
+)
+
+# Body: This is where the main content is displayed, like the central part of a dining table where dishes are placed
+body <- dashboardBody(
+  tabsetPanel(    
+    tabPanel("Distributions", box(plotOutput("dist"))), # A 'serving section' for distributions, showing a graphical plot
+    tabPanel("Statistics", dateInput("matchdate", "Enter the match date:", value = "2022-11-20"), valueBoxOutput("red"), valueBoxOutput("yellow")), # A 'serving section' for statistics, including inputs for dates and displays for card counts
+    tabPanel("Data", "Data goes here.", tableOutput("data")) # A 'serving section' for raw data, laid out in a table format
+  )
+)
+
+# Server: Like the kitchen where all the cooking happens, this is where the data and reactive elements are prepared
+server <- function(input, output) {  
+  # Preparing a 'dish' of red cards, to be served in the value box 'plate'
+  output$red <- renderValueBox(valueBox(0, "Red cards"))
+  # Preparing a 'dish' of yellow cards, to be served in the value box 'plate'
+  output$yellow <- renderValueBox(valueBox(6, "Yellow cards"))
+}
+
+# UI setup: The arrangement of the 'dining area', where header, sidebar, and body are brought together
+ui <- dashboardPage(header, sidebar, body)
+
+# Launch the Shiny app: Opening the 'restaurant' for users to 'dine in'
+shinyApp(ui, server)
+
+```
+
+
+```{r}
+header <- dashboardHeader(
+  title = "Analysis results for global soccer tournament",
+  titleWidth = 400,
+  dropdownMenu(type = "messages",
+       messageItem("Colleague", "Hello world!")),
+  dropdownMenu(type = "notifications",
+       notificationItem("Have you rested today?"),
+       taskItem("Dashboard completion", value = 20)))
+
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    width = 400,
+    id = "pages",
+    menuItem("Match details", tabName = "matches", icon = icon("futbol"),
+             badgeLabel = "New content!", badgeColor = "green"),
+    menuItem("Overall results", tabName = "overall", 
+            menuSubItem("Charts", tabName = "charts"),
+            menuSubItem("Data table", tabName = "datatable", icon=icon("file-excel"))),
+    # Place a slider in a new tab called "Number of goals"
+    menuItem("A slider",  sliderInput("slider", "Number of goals", min=0, max=10, value = 2))
+  )
+)
+
+body <- dashboardBody(tabsetPanel(    
+  tabPanel("Distributions",            
+           box(plotOutput("dist"))),   
+  tabPanel("Statistics",             
+           dateInput("matchdate","Enter the match date:",                      
+                     value ="2022-11-20"),            
+           valueBoxOutput("red"),            
+           valueBoxOutput("yellow")),    
+  tabPanel("Data","Data goes here.",            
+           tableOutput("data"))))
+
+server <-function(input, output){  
+  output$red <- renderValueBox(valueBox(0,"Red cards")) 
+  output$yellow <- renderValueBox(valueBox(6,"Yellow cards"))}
+
+
+ui <- dashboardPage(header, sidebar, body)
+
+
+
+shinyApp(ui, server)
+```
+
+
+## Exercise 4 Wireframing with boxes
+A new row is defined by fluidRow().
+
+Furthermore, box() can be added to the body to organize content. Multiple box()es can be added, each with a default width of 6, and can be adjusted with the width argument. Only two default box()es can be placed in a row, since the maximum width of a row is 12. You can also set height so that boxes of various dimensions can be added.
+
+These box()es then serve two main purposes here. Firstly, they organize elements of your shinydashboard; and secondly, to carry out wireframing, so that you can plan the placements of each object before adding content.
+
+You will carry out wireframing with empty boxes in this exercise.
+In the first row, add three box()es with widths 2, 2 and 8.
+In the second row, add one box() that fills the entire row and has height 200.
+In the third row containing two empty boxes with equal widths, labeled as "A slider goes here" and "Some info boxes go here".
+```{r}
+body <- dashboardBody(
+  # Add three boxes with widths 2, 2 and 8
+  fluidRow(box("Some buttons go here", ___, height = 100), 
+           ___("Checkboxes go here", ___, height = 50),
+           ___("A chart goes here", ___, height = 150)),
+  # Add one box that fills the entire row and has height 200
+  fluidRow(___("Data table goes here"), ___, ___),
+  # Add a third row containing two boxes with equal widths
+  fluidRow(___)
+)
+
+ui <- dashboardPage(header, sidebar, body)
+server <- function(input, output){}
+shinyApp(ui, server)
+```
+
+
+```{r}
+header <- dashboardHeader(
+  title = "Analysis results for global soccer tournament",
+  titleWidth = 400,
+  dropdownMenu(type = "messages",
+       messageItem("Colleague", "Hello world!")),
+  dropdownMenu(type = "notifications",
+       notificationItem("Have you rested today?"),
+       taskItem("Dashboard completion", value = 20)))
+
+sidebar <- dashboardSidebar(  
+  sidebarMenu(    
+    id ="pages",    
+    menuItem("Many charts", tabName ="charts",            
+             icon = icon("chart-line"),            
+             badgeLabel ="New content!", badgeColor ="green"), 
+    menuItem("Statistics", icon = icon("file-excel"),             
+             tabName ="statistics",           
+             badgeLabel ="urgent", badgeColor ="red")))
+
+body <- dashboardBody(
+  # Add three boxes with widths 2, 2 and 8
+  fluidRow(box("Some buttons go here", width = 2, height = 100), 
+           box("Checkboxes go here", width = 2, height = 50),
+           box("A chart goes here", width = 8, height = 150)),
+  # Add one box that fills the entire row and has height 200
+  fluidRow(box("Data table goes here"), width = 12, height = 200),
+  # Add a third row containing two boxes with equal widths
+  fluidRow(box("A slider goes here"), box("Some info boxes go here"))
+)
+
+ui <- dashboardPage(header, sidebar, body)
+server <- function(input, output){}
+shinyApp(ui, server)
+```
+
+# Wireframing
+Let's revisit the previous example of the dashboard for analysis results a soccer tournament. In the previous exercises, you have already set up the header and sidebar.
+
+In particular, a button in the sidebar is defined by menuItem() and are contained within sidebarMenu(). You may have noticed these buttons do nothing at this point. You will now link these sidebar buttons to a different page in the body of the UI. This is still part of the wireframing process, where you are still deciding on the positions of each object. Each page within the body is defined by tabItem(), and must be contained within tabItems.
+
+Link the menuItems() labeled as "matches", so that the "Match details" button in the sidebar is linked to a page in the body.
+
+```{r}
+library(shiny)
+library(shinydashboard)
+
+header <- dashboardHeader(
+  title = "Analysis results for global soccer tournament",
+  titleWidth = 400,
+  dropdownMenu(type = "messages",
+               messageItem("Colleage", "Hello world!")),
+  dropdownMenu(type = "notifications",
+               notificationItem("Have you rested today?"),
+               taskItem("Dashboard completion", value = 20)))
+
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    width = 400,
+    id = "pages",
+    menuItem("Match details", tabName = "matches", icon = icon("futbol"),
+             badgeLabel = "New content!", badgeColor = "green"),
+    menuItem("Overall results", tabName = "overall", 
+             menuSubItem("Charts", tabName = "charts"),
+             menuSubItem("Data table", tabName = "datatable", icon=icon("file-excel"))),
+    menuItem("A slider",  sliderInput("slider", "Number of goals", min=0, max=10, value = 2))
+  )
+)
+
+body <- dashboardBody(
+  # Link "matches" to an empty page in the body
+  ___(
+    ___(___, "Match information goes here")
+  )
+)
+ui <- dashboardPage(header, sidebar, body)
+server <- function(input, output){}
+shinyApp(ui, server)
+```
+
+
+```{r}
+library(shiny)
+library(shinydashboard)
+
+header <- dashboardHeader(
+  title = "Analysis results for global soccer tournament",
+  titleWidth = 400,
+  dropdownMenu(type = "messages",
+               messageItem("Colleage", "Hello world!")),
+  dropdownMenu(type = "notifications",
+               notificationItem("Have you rested today?"),
+               taskItem("Dashboard completion", value = 20)))
+
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    width = 400,
+    id = "pages",
+    menuItem("Match details", tabName = "matches", icon = icon("futbol"),
+             badgeLabel = "New content!", badgeColor = "green"),
+    menuItem("Overall results", tabName = "overall", 
+             menuSubItem("Charts", tabName = "charts"),
+             menuSubItem("Data table", tabName = "datatable", icon=icon("file-excel"))),
+    menuItem("A slider",  sliderInput("slider", "Number of goals", min=0, max=10, value = 2))
+  )
+)
+
+body <- dashboardBody(
+  # Link "matches" to an empty page in the body
+  tabItems(
+    tabItem("matches", "Match information goes here")
+  )
+)
+ui <- dashboardPage(header, sidebar, body)
+server <- function(input, output){}
+shinyApp(ui, server)
+```
+
+Link the "datatable" page to the body and add text "Data table goes here".
+Place the "charts" page to the body and add text "Charts go here".
+
+```{r}
+library(shiny)
+library(shinydashboard)
+
+header <- dashboardHeader(
+  title = "Analysis results for global soccer tournament",
+  titleWidth = 400,
+  dropdownMenu(type = "messages",
+               messageItem("Colleage", "Hello world!")),
+  dropdownMenu(type = "notifications",
+               notificationItem("Have you rested today?"),
+               taskItem("Dashboard completion", value = 20)))
+
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    width = 400,
+    id = "pages",
+    menuItem("Match details", tabName = "matches", icon = icon("futbol"),
+             badgeLabel = "New content!", badgeColor = "green"),
+    menuItem("Overall results", tabName = "overall", 
+             menuSubItem("Charts", tabName = "charts"),
+             menuSubItem("Data table", tabName = "datatable", icon=icon("file-excel"))),
+    menuItem("A slider",  sliderInput("slider", "Number of goals", min=0, max=10, value = 2))
+  )
+)
+
+body <- dashboardBody(
+  tabItems(
+    tabItem("matches", "Match information goes here"),
+    # Link the datatable page and add text "Data table goes here"
+    ___(___, ___),
+    # Link the charts page and add text "Charts go here"
+    ___
+  )
+)
+ui <- dashboardPage(header, sidebar, body)
+server <- function(input, output){}
+shinyApp(ui, server)
+```
+
+
+```{r}
+library(shiny)
+library(shinydashboard)
+
+header <- dashboardHeader(
+  title = "Analysis results for global soccer tournament",
+  titleWidth = 400,
+  dropdownMenu(type = "messages",
+               messageItem("Colleage", "Hello world!")),
+  dropdownMenu(type = "notifications",
+               notificationItem("Have you rested today?"),
+               taskItem("Dashboard completion", value = 20)))
+
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    width = 400,
+    id = "pages",
+    menuItem("Match details", tabName = "matches", icon = icon("futbol"),
+             badgeLabel = "New content!", badgeColor = "green"),
+    menuItem("Overall results", tabName = "overall", 
+             menuSubItem("Charts", tabName = "charts"),
+             menuSubItem("Data table", tabName = "datatable", icon=icon("file-excel"))),
+    menuItem("A slider",  sliderInput("slider", "Number of goals", min=0, max=10, value = 2))
+  )
+)
+
+body <- dashboardBody(
+  tabItems(
+    tabItem("matches", "Match information goes here"),
+    # Link the datatable page and add text "Data table goes here"
+    tabItem("datatable", "Data table goes here"),
+    # Link the charts page and add text "Charts go here"
+    tabItem("charts", "Charts go here")
+  )
+)
+ui <- dashboardPage(header, sidebar, body)
+server <- function(input, output){}
+shinyApp(ui, server)
+```
+
+
+
+
+
+

@@ -1,0 +1,1230 @@
+---
+title: "DATA VISUALISATION"
+author: "Feryal WINDAL"
+date: "2024-10-13"
+output: html_document
+---
+# Data Visualization with ggplot2 in R
+
+## 1. Introduction
+Dans ce chapitre, nous allons vous mettre dans le bon état d'esprit pour développer des visualisations significatives avec R. Vous comprendrez qu'en tant qu'outil de communication, les visualisations nécessitent de penser d'abord à votre public. Vous serez également initié aux bases de ggplot2 - les 7 différents éléments grammaticaux (couches) et les mappings esthétiques.
+## 1.1 Explore and explain
+La visualisation de données est un outil puissant pour explorer et expliquer les données. Avant de commencer à créer des graphiques, il est important de comprendre votre public et vos objectifs.
+
+Exploration : Lorsque vous explorez des données, vous cherchez des tendances, des modèles et des anomalies.
+Explication : Lorsque vous expliquez des données, vous communiquez des informations spécifiques à un public.
+
+## 1.2 Drawing your first plot
+Commençons par créer notre premier graphique avec ggplot2. Nous utiliserons le jeu de données mpg inclus dans ggplot2.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(ggplot2)
+library(dplyr)
+#install.packages("palmerpenguins")
+library(palmerpenguins)
+library(gganimate)
+library(gapminder)
+library(maps)
+#install.packages("mapproj")
+```
+
+
+```{r}
+# Créer un nuage de points simple
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point()
+```
+Ce code crée un nuage de points (scatter plot) montrant la relation entre la cylindrée du moteur (displ) et la consommation d'essence sur autoroute (hwy).
+
+## 1.3 Data columns types affect plot types
+Le type de données dans vos colonnes affecte le type de graphique que vous pouvez créer. Voici les principaux types de données :
+
+Continues : Valeurs numériques (ex : taille, poids)
+Discrètes : Valeurs entières (ex : nombre d'enfants)
+Catégorielles : Valeurs groupées (ex : couleurs, types de voitures)
+
+Le choix du type de graphique dépend des types de données que vous visualisez.
+
+```{r}
+library(dplyr)
+
+# Examiner la structure des données
+str(mpg)
+
+# 1. Données continues
+# Exemple : cylindrée (displ) vs consommation sur autoroute (hwy)
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  labs(title = "Cylindrée vs Consommation (données continues)",
+       x = "Cylindrée (L)", y = "Consommation sur autoroute (mpg)")
+```
+
+
+```{r}
+# 2. Données discrètes
+# Exemple : nombre de cylindres (cyl)
+ggplot(mpg, aes(x = factor(cyl))) +
+  geom_bar() +
+  labs(title = "Distribution du nombre de cylindres (données discrètes)",
+       x = "Nombre de cylindres", y = "Nombre de véhicules")
+```
+
+
+```{r}
+# 3. Données catégorielles
+# Exemple : classe de voiture (class)
+ggplot(mpg, aes(x = class, y = hwy)) +
+  geom_boxplot() +
+  labs(title = "Consommation par classe de voiture (données catégorielles)",
+       x = "Classe de voiture", y = "Consommation sur autoroute (mpg)")
+```
+
+
+```{r}
+# 4. Combinaison de types de données
+# Données continues (hwy) vs catégorielles (class), colorées par données discrètes (cyl)
+ggplot(mpg, aes(x = class, y = hwy, fill = factor(cyl))) +
+  geom_boxplot() +
+  labs(title = "Consommation par classe et nombre de cylindres",
+       x = "Classe de voiture", y = "Consommation sur autoroute (mpg)",
+       fill = "Nombre de cylindres")
+```
+
+
+```{r}
+# 5. Transformation de données continues en catégorielles
+mpg %>%
+  mutate(hwy_category = cut(hwy, breaks = 3, labels = c("Basse", "Moyenne", "Haute"))) %>%
+  ggplot(aes(x = hwy_category)) +
+  geom_bar() +
+  labs(title = "Distribution des catégories de consommation",
+       x = "Catégorie de consommation", y = "Nombre de véhicules")
+```
+
+
+```{r}
+# 6. Données continues avec une variable catégorielle
+ggplot(mpg, aes(x = displ, y = hwy, color = drv)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Cylindrée vs Consommation par type de transmission",
+       x = "Cylindrée (L)", y = "Consommation sur autoroute (mpg)",
+       color = "Type de transmission")
+```
+Ces exemples montrent comment différents types de données peuvent être visualisés :
+
+Les données continues sont souvent représentées par des nuages de points ou des lignes.
+Les données discrètes peuvent être visualisées avec des diagrammes en barres.
+Les données catégorielles sont souvent représentées par des boîtes à moustaches ou des diagrammes en barres.
+On peut combiner différents types de données dans un même graphique.
+Les données continues peuvent être transformées en catégories pour une visualisation différente.
+Les données continues peuvent être visualisées avec une variable catégorielle supplémentaire pour la couleur ou le groupement.
+
+Le choix du type de graphique dépend non seulement du type de données, mais aussi de ce que vous voulez montrer ou analyser dans vos données. Expérimentez avec différents types de graphiques pour trouver celui qui communique le mieux l'information que vous souhaitez transmettre.
+
+
+
+## 1.4 The grammar of graphics
+ggplot2 est basé sur la "grammaire des graphiques", un cadre pour décrire et construire des visualisations. Les composants principaux sont :
+
+Données
+Esthétiques (aesthetics)
+Géométries (geometries)
+Facettes (facets)
+Statistiques (statistics)
+Coordonnées (coordinates)
+Thèmes (themes)
+
+```{r}
+# Ici, nous utilisons le jeu de données mpg
+
+# 2. Esthétiques (aesthetics)
+# Les esthétiques mappent les variables aux propriétés visuelles
+ggplot(mpg, aes(x = displ, y = hwy, color = class, size = cyl)) +
+  geom_point() +
+  labs(title = "Exemple d'esthétiques",
+       x = "Cylindrée", y = "Consommation sur autoroute",
+       color = "Classe", size = "Cylindres")
+```
+
+
+```{r}
+# 3. Géométries (geometries)
+# Les géométries déterminent le type de graphique
+ggplot(mpg, aes(x = class, y = hwy)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.2, alpha = 0.5) +
+  labs(title = "Exemple de géométries multiples",
+       x = "Classe", y = "Consommation sur autoroute")
+```
+
+
+```{r}
+# 4. Facettes (facets)
+# Les facettes divisent le graphique en sous-graphiques
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  facet_wrap(~ drv) +
+  labs(title = "Exemple de facettes",
+       x = "Cylindrée", y = "Consommation sur autoroute")
+```
+
+
+```{r}
+# 5. Statistiques (statistics)
+# Les statistiques permettent de résumer ou transformer les données
+ggplot(mpg, aes(x = class, y = hwy)) +
+  geom_boxplot() +
+  stat_summary(fun = mean, geom = "point", color = "red", size = 3) +
+  labs(title = "Exemple de statistiques",
+       x = "Classe", y = "Consommation sur autoroute")
+```
+
+
+```{r}
+# 6. Coordonnées (coordinates)
+# Les coordonnées définissent le système de coordonnées du graphique
+ggplot(mpg, aes(x = class)) +
+  geom_bar() +
+  coord_flip() +
+  labs(title = "Exemple de coordonnées (axes inversés)",
+       x = "Nombre de véhicules", y = "Classe")
+```
+
+
+```{r}
+# 7. Thèmes (themes)
+# Les thèmes contrôlent l'apparence globale du graphique
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point() +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title = element_text(face = "italic"),
+    legend.position = "bottom"
+  ) +
+  labs(title = "Exemple de thème personnalisé",
+       x = "Cylindrée", y = "Consommation sur autoroute",
+       color = "Classe")
+```
+
+
+```{r}
+# Exemple combinant tous les éléments
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_wrap(~ drv) +
+  scale_color_brewer(palette = "Set1") +
+  coord_cartesian(ylim = c(10, 45)) +
+  theme_light() +
+  labs(title = "Graphique combinant tous les éléments de la grammaire",
+       x = "Cylindrée", y = "Consommation sur autoroute",
+       color = "Classe")
+```
+Ces exemples illustrent comment chaque composant de la grammaire des graphiques peut être utilisé dans ggplot2 :
+
+Les données (mpg) sont la base de tous les graphiques.
+Les esthétiques (aes()) mappent les variables aux propriétés visuelles comme la position, la couleur, la taille, etc.
+Les géométries (geom_*()) déterminent comment les données sont représentées visuellement.
+Les facettes (facet_*()) divisent le graphique en sous-graphiques basés sur des variables catégorielles.
+Les statistiques (stat_*()) permettent de transformer ou résumer les données avant de les représenter.
+Les coordonnées (coord_*()) définissent le système de coordonnées du graphique.
+Les thèmes (theme() et theme_*()) contrôlent l'apparence globale du graphique.
+
+Le dernier exemple montre comment tous ces éléments peuvent être combinés pour créer un graphique complexe et informatif. La puissance de ggplot2 réside dans sa capacité à construire des graphiques couche par couche, en utilisant cette grammaire des graphiques.
+
+
+## 1.5 Mapping data columns to aesthetics
+Le mapping des colonnes de données aux esthétiques est fondamental dans ggplot2. Voici un exemple :
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point()
+```
+Ici, nous avons mappé :
+
+displ à l'axe x
+hwy à l'axe y
+class à la couleur des points
+
+## 1.6 Understanding variables
+Dans ggplot2, il est crucial de comprendre la différence entre les variables continues et catégorielles :
+
+Variables continues : Peuvent prendre n'importe quelle valeur dans un intervalle (ex : taille, poids)
+Variables catégorielles : Prennent un nombre limité de valeurs distinctes (ex : genre, type de voiture)
+
+```{r}
+# 1. Variable continue : Visualisation de la relation entre "displ" (taille du moteur) et "hwy" (efficacité sur autoroute)
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  labs(title = "Relation entre deux variables continues : taille du moteur vs efficacité",
+       x = "Taille du moteur (L)", 
+       y = "Efficacité sur autoroute (mpg)")
+```
+
+
+```{r}
+# 2. Variable catégorielle : Visualisation du nombre de voitures par type
+ggplot(mpg, aes(x = class)) +
+  geom_bar(fill = "skyblue", color = "black") +
+  labs(title = "Distribution des voitures par type (variable catégorielle)",
+       x = "Type de voiture", 
+       y = "Nombre de voitures")
+```
+
+
+```{r}
+# 3. Comparaison : Relation entre une variable continue (displ) et une variable catégorielle (drv)
+ggplot(mpg, aes(x = drv, y = displ)) +
+  geom_boxplot(fill = "lightgreen") +
+  labs(title = "Comparaison d'une variable continue et catégorielle : Transmission vs Taille du moteur",
+       x = "Type de transmission (variable catégorielle)", 
+       y = "Taille du moteur (L, variable continue)")
+```
+Scatter plot pour les variables continues : La première visualisation montre la relation entre deux variables continues (displ et hwy). La taille du moteur (displ) est représentée sur l'axe x et l'efficacité sur autoroute (hwy) sur l'axe y.
+
+Bar plot pour les variables catégorielles : La seconde visualisation montre la distribution des voitures par type (class), une variable catégorielle, avec un graphique en barres. Chaque catégorie (type de voiture) a un nombre limité de valeurs distinctes.
+
+Box plot pour comparer une variable continue avec une variable catégorielle : La troisième visualisation utilise un diagramme en boîte pour comparer la taille du moteur (displ, variable continue) en fonction du type de transmission (drv, variable catégorielle), ce qui permet de voir la répartition des valeurs continues au sein des catégories.
+
+## 1.7 ggplot2 layers
+ggplot2 utilise un système de couches pour construire des graphiques. Chaque couche ajoute des éléments au graphique. Voici un exemple avec plusieurs couches :
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  geom_smooth() +
+  labs(title = "Relation entre cylindrée et consommation",
+       x = "Cylindrée", y = "Miles par gallon (autoroute)")
+```
+Les géométries (ou "geoms") sont les formes visuelles que nous utilisons pour représenter les données. Voici quelques geoms couramment utilisés :
+
+geom_point() : Points (scatter plots)
+geom_line() : Lignes
+geom_bar() : Barres
+geom_histogram() : Histogrammes
+
+# 1.8 Changing one geom or every geom
+Vous pouvez modifier les attributs d'un geom spécifique ou de tous les geoms :
+```{r}
+# Modifier un seul geom
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(color = "blue") +
+  geom_smooth(color = "red")
+```
+
+
+```{r}
+# Modifier tous les geoms
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point() +
+  geom_smooth()
+```
+# 1.9 Saving plots as variables
+Vous pouvez sauvegarder vos plots dans des variables pour les modifier ou les réutiliser plus tard :
+
+```{r}
+# Sauvegarder le plot de base
+base_plot <- ggplot(mpg, aes(x = displ, y = hwy))
+
+# Ajouter des geoms au plot de base
+final_plot <- base_plot +
+  geom_point() +
+  geom_smooth()
+
+# Afficher le plot final
+print(final_plot)
+```
+
+Cette première partie d'introduction vous a donné les bases de la visualisation de données avec ggplot2 en R. Dans les chapitres suivants, nous approfondirons ces concepts et explorerons des techniques plus avancées.
+
+# 2. Aesthetics
+Les mappings esthétiques sont la pierre angulaire du concept de tracé de la grammaire des graphiques. C'est ici que la magie opère - en convertissant des données continues et catégorielles en échelles visuelles qui donnent accès à une grande quantité d'informations en très peu de temps. Dans ce chapitre, vous comprendrez comment choisir les meilleurs mappings esthétiques pour vos données.
+## 2.1 Visible aesthetics
+Les esthétiques visibles sont celles qui modifient l'apparence des éléments géométriques dans votre graphique. Les plus courantes sont :
+
+couleur (color)
+remplissage (fill)
+forme (shape)
+taille (size)
+transparence (alpha)
+
+Voici un exemple utilisant plusieurs esthétiques :
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy, color = class, size = cyl, shape = drv)) +
+  geom_point(alpha = 0.7) +
+  labs(title = "Consommation selon la cylindrée",
+       x = "Cylindrée", y = "Miles par gallon (autoroute)")
+```
+Les aesthetics sont des mappings entre les variables de vos données et les propriétés visuelles de votre graphique. Elles sont définies dans la fonction aes().
+Voici les principaux arguments de aes() :
+
+x et y : Définissent les variables pour les axes x et y.
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy))+
+  geom_point()
+```
+
+color : Définit la couleur des géométries.
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy, color = class))+
+  geom_point()
+```
+
+fill : Définit la couleur de remplissage pour les géométries pleines.
+```{r}
+ggplot(mpg, aes(x = class, fill = drv)) + geom_bar()
+```
+
+size : Définit la taille des géométries.
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy, size = cyl))+
+  geom_point()
+```
+
+shape : Définit la forme des points.
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy, shape = drv))+
+  geom_point()
+```
+
+alpha : Définit la transparence des géométries.
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy, alpha = cyl))+
+  geom_point()
+```
+
+group : Définit les groupes de données, utile pour les lignes et les boxplots.
+```{r}
+#ggplot(mpg, aes(x = class, y = hwy, group = drv, color = drv)) + geom_line()
+```
+
+linetype : Définit le type de ligne.
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy, linetype = drv)) + geom_smooth(se = FALSE)
+```
+
+weight : Définit le poids des observations pour certaines statistiques.
+```{r}
+ggplot(mpg, aes(x = class, weight = displ)) + geom_bar()
+```
+
+Exemple combinant plusieurs aesthetics :
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy, color = class, size = cyl, shape = drv)) +
+  geom_point(alpha = 0.7) +
+  labs(title = "Consommation vs Cylindrée",
+       x = "Cylindrée (L)", y = "Consommation sur autoroute (mpg)",
+       color = "Classe", size = "Cylindres", shape = "Transmission")
+```
+
+Points importants à noter :
+
+Les aesthetics peuvent être définies globalement dans ggplot() ou localement dans des géométries spécifiques.
+Les aesthetics peuvent être mappées à des variables (dans aes()) ou définies comme des valeurs constantes (en dehors de aes()).
+Certaines aesthetics ne fonctionnent qu'avec certaines géométries. Par exemple, fill n'a pas d'effet sur geom_point() sans modifier la forme du point.
+Pour les variables continues, ggplot2 utilisera des échelles continues (comme des gradients de couleur). Pour les variables discrètes, il utilisera des échelles discrètes (comme des couleurs distinctes).
+Vous pouvez modifier les échelles des aesthetics avec les fonctions scale_*().
+
+En comprenant et en utilisant efficacement les aesthetics, vous pouvez créer des visualisations riches en informations qui représentent plusieurs dimensions de vos données simultanément.
+
+## 2.2 All about aesthetics: color, shape and size
+Explorons plus en détail l'utilisation de la couleur, de la forme et de la taille :
+```{r}
+# Couleur pour variable catégorielle
+p1 <- ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point()
+
+# Forme pour variable catégorielle
+p2 <- ggplot(mpg, aes(x = displ, y = hwy, shape = drv)) +
+  geom_point()
+
+# Taille pour variable continue
+p3 <- ggplot(mpg, aes(x = displ, y = hwy, size = cyl)) +
+  geom_point()
+
+# Afficher les trois graphiques côte à côte
+library(gridExtra)
+grid.arrange(p1, p2, p3, ncol = 3)
+```
+## 2.3 All about aesthetics: color vs. fill
+La différence entre color et fill est importante à comprendre :
+
+color : s'applique généralement aux lignes et aux contours
+fill : s'applique à l'intérieur des formes
+
+```{r}
+ggplot(mpg, aes(x = class)) +
+  geom_bar(color = "black", fill = "skyblue") +
+  labs(title = "Nombre de voitures par classe",
+       x = "Classe", y = "Nombre")
+```
+## 2.4 All about aesthetics: comparing aesthetics
+Comparons différentes esthétiques pour voir laquelle convient le mieux à nos données :
+```{r}
+p1 <- ggplot(mpg, aes(x = class, y = hwy, fill = drv)) +
+  geom_boxplot()
+
+p2 <- ggplot(mpg, aes(x = class, y = hwy, color = drv)) +
+  geom_jitter(width = 0.3)
+
+grid.arrange(p1, p2, ncol = 2)
+```
+
+## 2.5 Aesthetics for categorical & continuous variables
+Il est important de choisir les bonnes esthétiques en fonction du type de variable :
+
+Pour les variables catégorielles : couleur, forme, remplissage
+Pour les variables continues : taille, transparence, dégradé de couleur
+
+```{r}
+# Variable catégorielle
+p1 <- ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point()
+
+# Variable continue
+p2 <- ggplot(mpg, aes(x = displ, y = hwy, color = cty)) +
+  geom_point() +
+  scale_color_viridis_c()
+
+grid.arrange(p1, p2, ncol = 2)
+```
+
+
+## 2.6 All about attributes: conflicts with aesthetics
+Dans ggplot2, il peut y avoir des conflits entre les attributs définis directement dans les géométries (geom_*) et les esthétiques (aes()) définies dans la fonction ggplot() ou dans les géométries.
+Explication du conflit
+Quand vous définissez une esthétique dans aes(), vous mappez une variable à une propriété visuelle. Par exemple :
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point()
+```
+Ici, la couleur des points varie en fonction de la classe de voiture.
+
+Cependant, si vous spécifiez ensuite une couleur fixe dans geom_point(), cela écrase l'esthétique :
+
+```{r}
+# L'attribut 'color' écrase l'esthétique 'color'
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point(color = "red") +
+  labs(title = "Conflit entre attribut et esthétique")
+```
+
+## 2.7 Going all out
+Combinons plusieurs esthétiques pour créer un graphique informatif :
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy, color = class, size = cyl, shape = drv)) +
+  geom_point(alpha = 0.7) +
+  scale_color_brewer(palette = "Set1") +
+  labs(title = "Consommation selon plusieurs variables",
+       x = "Cylindrée", y = "Miles par gallon (autoroute)")
+```
+
+## 2.8 Updating aesthetic labels
+Personnalisez les étiquettes des esthétiques pour plus de clarté :
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point() +
+  labs(title = "Consommation selon la cylindrée",
+       x = "Cylindrée (L)", 
+       y = "Consommation (mpg)",
+       color = "Catégorie de voiture")
+```
+## 2.9 Aesthetics best practices
+Quelques bonnes pratiques à suivre :
+
+Choisissez des esthétiques appropriées au type de données.
+Évitez de surcharger votre graphique avec trop d'esthétiques.
+Assurez-vous que vos choix esthétiques sont accessibles (par exemple, pour les daltoniens).
+Utilisez des échelles cohérentes et intuitives.
+
+# 3. Geometries
+Une géométrie (ou "geom") dans ggplot2 dicte quels éléments visuels seront utilisés pour représenter les données. Dans ce chapitre, nous allons nous familiariser avec les géométries utilisées dans les trois types de graphiques les plus courants - les nuages de points, les diagrammes en barres et les graphiques en lignes. Nous examinerons différentes façons de construire ces graphiques.
+
+geom_point (pour les nuages de points) :
+
+shape : Détermine la forme du point. Les valeurs courantes sont 21 (cercle plein), 16 (cercle vide), 17 (triangle), etc.
+size : Contrôle la taille du point.
+color : Définit la couleur du contour du point.
+fill : Définit la couleur de remplissage du point (pour les formes qui peuvent être remplies).
+alpha : Contrôle la transparence du point (0 = totalement transparent, 1 = opaque).
+
+
+geom_line (pour les graphiques en ligne) :
+
+linetype : Spécifie le type de ligne (solid, dashed, dotted, etc.).
+size : Contrôle l'épaisseur de la ligne.
+color : Définit la couleur de la ligne.
+alpha : Contrôle la transparence de la ligne.
+
+
+geom_bar (pour les diagrammes en barres) :
+
+fill : Définit la couleur de remplissage des barres.
+color : Définit la couleur du contour des barres.
+alpha : Contrôle la transparence des barres.
+width : Spécifie la largeur des barres.
+position : Détermine comment les barres sont positionnées (stack, dodge, fill).
+
+
+geom_histogram (pour les histogrammes) :
+
+bins : Spécifie le nombre de bins pour l'histogramme.
+fill : Définit la couleur de remplissage des barres.
+color : Définit la couleur du contour des barres.
+alpha : Contrôle la transparence des barres.
+binwidth : Spécifie la largeur des bins.
+
+
+geom_boxplot (pour les boîtes à moustaches) :
+
+fill : Définit la couleur de remplissage des boîtes.
+color : Définit la couleur du contour des boîtes et des moustaches.
+alpha : Contrôle la transparence des boîtes.
+outlier.color : Spécifie la couleur des points aberrants.
+notch : Ajoute une encoche aux boîtes si TRUE.
+
+
+
+Il est important de noter que ces attributs peuvent être définis de deux manières dans ggplot2 :
+À l'intérieur de aes() : Si vous voulez que l'attribut varie en fonction d'une variable de vos données.
+Exemple : aes(color = variable)
+En dehors de aes() : Si vous voulez que l'attribut soit fixe pour tous les éléments.
+Exemple : geom_point(color = "blue")
+
+Cette flexibilité vous permet de créer des visualisations très personnalisées en fonction de vos besoins spécifiques.
+
+
+## 1. geom_point()
+
+Utilisé pour créer des nuages de points.
+
+```{r geom_point}
+ggplot(penguins, aes(x = flipper_length_mm, y = body_mass_g, color = species)) +
+  geom_point() +
+  labs(title = "Masse corporelle vs Longueur des nageoires",
+       x = "Longueur des nageoires (mm)", y = "Masse corporelle (g)")
+```
+
+## 2. geom_line()
+
+Utilisé pour créer des graphiques en ligne, souvent pour des séries temporelles.
+
+```{r geom_line}
+economics %>%
+  ggplot(aes(x = date, y = unemploy)) +
+  geom_line(color = "blue") +
+  labs(title = "Évolution du chômage aux États-Unis",
+       x = "Année", y = "Nombre de chômeurs")
+```
+
+## 3. geom_bar()
+
+Utilisé pour créer des diagrammes en barres.
+
+```{r geom_bar}
+ggplot(penguins, aes(x = species, fill = island)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Nombre de pingouins par espèce et par île",
+       x = "Espèce", y = "Nombre")
+```
+
+## 4. geom_histogram()
+
+Utilisé pour créer des histogrammes.
+
+```{r geom_histogram}
+ggplot(penguins, aes(x = body_mass_g)) +
+  geom_histogram(binwidth = 200, fill = "skyblue", color = "black") +
+  labs(title = "Distribution de la masse corporelle des pingouins",
+       x = "Masse corporelle (g)", y = "Fréquence")
+```
+
+## 5. geom_boxplot()
+
+Utilisé pour créer des boîtes à moustaches.
+
+```{r geom_boxplot}
+ggplot(penguins, aes(x = species, y = flipper_length_mm, fill = species)) +
+  geom_boxplot() +
+  labs(title = "Distribution de la longueur des nageoires par espèce",
+       x = "Espèce", y = "Longueur des nageoires (mm)")
+```
+
+## 6. geom_violin()
+
+Similaire à geom_boxplot(), mais montre la distribution complète des données.
+
+```{r geom_violin}
+ggplot(penguins, aes(x = species, y = bill_length_mm, fill = species)) +
+  geom_violin() +
+  labs(title = "Distribution de la longueur du bec par espèce",
+       x = "Espèce", y = "Longueur du bec (mm)")
+```
+
+## 7. geom_density()
+
+Utilisé pour créer des courbes de densité.
+
+```{r geom_density}
+ggplot(penguins, aes(x = body_mass_g, fill = species)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Distribution de la masse corporelle par espèce",
+       x = "Masse corporelle (g)", y = "Densité")
+```
+
+## 8. geom_smooth()
+
+Utilisé pour ajouter une ligne de tendance ou de régression.
+
+```{r geom_smooth}
+ggplot(penguins, aes(x = flipper_length_mm, y = body_mass_g)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Relation entre la longueur des nageoires et la masse corporelle",
+       x = "Longueur des nageoires (mm)", y = "Masse corporelle (g)")
+```
+
+## 9. geom_tile()
+
+Utilisé pour créer des heatmaps ou des graphiques en tuiles.
+
+```{r geom_tile}
+penguins %>%
+  group_by(species, island) %>%
+  summarise(avg_mass = mean(body_mass_g, na.rm = TRUE)) %>%
+  ggplot(aes(x = species, y = island, fill = avg_mass)) +
+  geom_tile() +
+  scale_fill_viridis_c() +
+  labs(title = "Masse corporelle moyenne par espèce et par île",
+       x = "Espèce", y = "Île", fill = "Masse moyenne (g)")
+```
+## 3.1 Scatter plots
+Les nuages de points sont excellents pour montrer la relation entre deux variables continues.
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  labs(title = "Consommation vs Cylindrée",
+       x = "Cylindrée (L)", y = "Consommation sur autoroute (mpg)")
+```
+
+
+## 3.2 Overplotting 1: large datasets
+Avec de grands jeux de données, le chevauchement des points peut devenir problématique. Voici quelques solutions :
+```{r}
+# Utiliser la transparence
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point(alpha = 0.1) +
+  labs(title = "Prix vs Carat (avec transparence)")
+```
+
+
+
+
+
+```{r}
+# Utiliser un petit point
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point(shape = ".") +
+  labs(title = "Prix vs Carat (avec petits points)")
+```
+## 3.3 Overplotting 2: Aligned values
+Pour les valeurs alignées, nous pouvons utiliser le jitter :
+```{r}
+ggplot(mpg, aes(x = cyl, y = hwy)) +
+  geom_jitter(width = 0.3, height = 0) +
+  labs(title = "Consommation par nombre de cylindres (avec jitter)")
+```
+Le jitter dans ce contexte est utilisé pour résoudre le problème de superposition des points (overplotting) lorsque plusieurs observations ont des valeurs identiques ou très proches.
+Voici ce que fait exactement le jitter dans cet exemple :
+
+width = 0.3 : Cette valeur ajoute un léger décalage aléatoire horizontal aux points. Chaque point est déplacé aléatoirement jusqu'à 0,3 unités vers la gauche ou la droite de sa position d'origine sur l'axe x. Cela permet de séparer visuellement les points qui auraient autrement la même position x (nombre de cylindres).
+height = 0 : Cette valeur indique qu'aucun jitter n'est appliqué verticalement. Les points gardent leur position exacte sur l'axe y (consommation d'autoroute).
+
+L'effet global est de "disperser" légèrement les points horizontalement autour de chaque valeur discrète de l'axe x (3, 4, 5, 6, 8 cylindres), tout en conservant leur position verticale précise. Cela permet de :
+
+Révéler la densité des points à chaque niveau de cylindres.
+Montrer la distribution des valeurs de consommation pour chaque type de moteur.
+Éviter que les points ne se superposent complètement, ce qui masquerait la véritable quantité de données.
+
+Cette technique est particulièrement utile lorsqu'on travaille avec des variables catégorielles (comme le nombre de cylindres) en combinaison avec des variables continues (comme la consommation d'autoroute).
+
+
+## 3.4 Overplotting 3: Low-precision data
+Pour les données à faible précision, le jitter peut aussi être utile :
+```{r}
+ggplot(msleep, aes(x = sleep_total, y = sleep_rem)) +
+  geom_jitter(alpha = 0.5) +
+  labs(title = "Sommeil REM vs Sommeil total")
+```
+
+## 3.5 Overplotting 4: Integer data
+Pour les données entières, nous pouvons utiliser geom_count() :
+```{r}
+ggplot(mtcars, aes(x = cyl, y = gear)) +
+  geom_count(color = "blue") +
+  labs(title = "Nombre de voitures par cylindres et vitesses")
+```
+## 3.6 Histograms
+Les histogrammes sont utiles pour visualiser la distribution d'une variable continue.
+
+```{r}
+ggplot(mpg, aes(x = hwy)) +
+  geom_histogram(binwidth = 2, fill = "skyblue", color = "black") +
+  labs(title = "Distribution de la consommation sur autoroute",
+       x = "Consommation sur autoroute (mpg)", y = "Fréquence")
+```
+
+## 3.7 Drawing histograms
+On peut ajuster la largeur des barres et leur position :
+```{r}
+ggplot(mpg, aes(x = hwy)) +
+  geom_histogram(binwidth = 5, boundary = 0, fill = "lightgreen", color = "black") +
+  labs(title = "Distribution de la consommation (bins de 5 mpg)")
+```
+
+3.8 Positions in histograms
+On peut empiler ou juxtaposer des histogrammes pour comparer des groupes :
+```{r}
+ggplot(mpg, aes(x = hwy, fill = drv)) +
+  geom_histogram(position = "dodge", binwidth = 2) +
+  labs(title = "Distribution de la consommation par type de transmission")
+```
+## 3.9 Bar plots
+Les diagrammes en barres sont parfaits pour les variables catégorielles.
+```{r}
+ggplot(mpg, aes(x = class)) +
+  geom_bar(fill = "coral") +
+  labs(title = "Nombre de voitures par classe",
+       x = "Classe de voiture", y = "Nombre")
+```
+## 3.10 Position in bar and col plots
+On peut ajuster la position des barres :
+```{r}
+ggplot(mpg, aes(x = class, fill = drv)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Nombre de voitures par classe et type de transmission")
+```
+
+## 3.11 Overlapping bar plots
+Pour éviter le chevauchement, on peut utiliser position = "dodge" ou position = "fill" :
+
+```{r}
+p1 <- ggplot(mpg, aes(x = class, fill = drv)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Barres côte à côte")
+
+p2 <- ggplot(mpg, aes(x = class, fill = drv)) +
+  geom_bar(position = "fill") +
+  labs(title = "Barres empilées normalisées")
+
+grid.arrange(p1, p2, ncol = 2)
+```
+## 3.12 Bar plots: sequential color palette
+Utilisez une palette de couleurs séquentielle pour les données ordonnées :
+
+```{r}
+ggplot(mpg, aes(x = class, fill = factor(cyl))) +
+  geom_bar() +
+  scale_fill_brewer(palette = "Blues") +
+  labs(title = "Nombre de voitures par classe et cylindres",
+       fill = "Nombre de cylindres")
+```
+## 3.13 Line plots
+Les graphiques en ligne sont parfaits pour montrer l'évolution dans le temps.
+```{r}
+economics_subset <- economics[1:100, ]
+ggplot(economics_subset, aes(x = date, y = unemploy)) +
+  geom_line(color = "blue") +
+  labs(title = "Évolution du chômage au fil du temps",
+       x = "Date", y = "Nombre de chômeurs")
+```
+## 3.14 Basic line plots
+On peut ajouter des points aux lignes pour plus de clarté :
+```{r}
+ggplot(economics_subset, aes(x = date, y = unemploy)) +
+  geom_line(color = "red") +
+  geom_point() +
+  labs(title = "Évolution du chômage (avec points)")
+```
+
+## 3.15 Multiple time series
+Pour comparer plusieurs séries temporelles :
+
+```{r}
+economics_long <- tidyr::pivot_longer(economics, cols = c(pce, unemploy, psavert),
+                                      names_to = "variable", values_to = "value")
+ggplot(economics_long, aes(x = date, y = value, color = variable)) +
+  geom_line() +
+  labs(title = "Évolution de plusieurs indicateurs économiques",
+       x = "Date", y = "Valeur")
+```
+
+# 4. Themes
+Dans ce chapitre, nous explorerons comment la compréhension de la structure de vos données facilite grandement la visualisation. De plus, il est temps de rendre nos graphiques plus esthétiques. C'est la dernière étape du processus de visualisation des données. La couche Themes vous permettra de créer des graphiques de qualité publication directement dans R.
+
+Hiérarchie des éléments :
+
+Les éléments de thème sont organisés hiérarchiquement. Par exemple, modifier text affectera tous les éléments de texte, sauf si des éléments spécifiques (comme axis.text) sont également définis.
+
+
+Héritage des thèmes :
+
+Lorsque vous modifiez un thème, vous n'avez besoin de spécifier que les éléments que vous souhaitez changer. Les autres éléments hériteront du thème de base.
+
+
+Combinaison de thèmes :
+
+Vous pouvez combiner des thèmes prédéfinis avec des modifications personnalisées. Par exemple : theme_minimal() + theme(axis.text = element_text(color = "blue"))
+
+
+Thèmes complets vs partiels :
+
+Les fonctions comme theme_minimal() créent un thème complet, tandis que theme() crée un thème partiel qui modifie seulement les éléments spécifiés
+
+## Thèmes prédéfinis
+
+1. theme_gray() : Thème par défaut
+2. theme_bw() : Thème noir et blanc
+3. theme_linedraw() : Thème avec des lignes de grille noires
+4. theme_light() : Thème clair
+5. theme_dark() : Thème sombre
+6. theme_minimal() : Thème minimaliste
+7. theme_classic() : Thème classique
+8. theme_void() : Thème vide (pour des visualisations personnalisées)
+
+## Arguments principaux de theme()
+
+1. Texte
+   - text : tous les éléments de texte
+   - title : tous les éléments de titre
+   - plot.title : titre du graphique
+   - plot.subtitle : sous-titre du graphique
+   - plot.caption : légende du graphique
+   - axis.title : titres des axes
+   - axis.text : texte des axes
+   - legend.title : titre de la légende
+   - legend.text : texte de la légende
+
+2. Lignes
+   - line : tous les éléments de ligne
+   - axis.line : lignes des axes
+   - panel.grid : lignes de grille
+   - panel.grid.major : lignes de grille principales
+   - panel.grid.minor : lignes de grille secondaires
+
+## 4.1 Basic theming
+Commençons par appliquer un thème de base :
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Consommation vs Cylindrée (thème minimal)")
+```
+
+## 4.2 Customizing themes
+Vous pouvez personnaliser divers éléments du thème :
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point() +
+  theme_light() +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    axis.title = element_text(face = "italic"),
+    legend.position = "bottom"
+  ) +
+  labs(title = "Consommation vs Cylindrée (thème personnalisé)")
+```
+
+## 4.3 Color palettes
+Si vous vouliez utiliser le système de thèmes pour modifier les couleurs, vous pourriez faire quelque chose comme :
+
+```{r}
+ggplot(mpg, aes(x = class)) +
+  geom_bar() +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "lightyellow"),
+    axis.text = element_text(color = "blue")
+  )
+```
+
+## 4.5 Faceting
+La mise en facettes permet de créer des sous-graphiques basés sur des variables catégorielles :
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  facet_wrap(~class) +
+  theme_bw() +
+  labs(title = "Consommation vs Cylindrée par classe de voiture")
+```
+
+## 4.6 Coordinate systems
+Vous pouvez modifier le système de coordonnées pour changer la perspective du graphique :
+
+```{r}
+ggplot(mpg, aes(x = class, y = hwy)) +
+  geom_boxplot() +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Distribution de la consommation par classe (coordonnées inversées)")
+```
+## 4.7 Saving plots
+Enfin, vous pouvez sauvegarder vos graphiques dans différents formats :
+```{r}
+p <- ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Graphique final")
+
+ggsave("mon_graphique.png", plot = p, width = 10, height = 6, dpi = 300)
+```
+
+# 5. Techniques avancées de visualisation
+## 5.1 Combiner plusieurs géométries
+Vous pouvez superposer plusieurs géométries pour créer des graphiques plus riches en informations :
+
+```{r}
+ggplot(economics, aes(x = date)) +
+  geom_line(aes(y = unemploy / 1000, color = "Chômage")) +
+  geom_line(aes(y = pce / 100, color = "Dépenses de consommation")) +
+  scale_y_continuous(
+    name = "Chômage (milliers)",
+    sec.axis = sec_axis(~.*100, name = "Dépenses (milliards $)")
+  ) +
+  scale_color_manual(values = c("Chômage" = "red", "Dépenses de consommation" = "blue")) +
+  theme_minimal() +
+  labs(title = "Évolution du chômage et des dépenses de consommation",
+       color = "Indicateur") +
+  theme(legend.position = "bottom")
+```
+
+# 5.2 Annotations et textes
+Ajoutez des annotations pour mettre en évidence des points spécifiques :
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(method = "lm", se = FALSE, color = "black") +
+  annotate("text", x = 5, y = 40, label = "Tendance générale", angle = 15, size = 4) +
+  annotate("rect", xmin = 5.5, xmax = 7, ymin = 10, ymax = 25, 
+           alpha = 0.2, fill = "red") +
+  annotate("text", x = 6.25, y = 26, label = "Zone d'intérêt", color = "red") +
+  theme_light() +
+  labs(title = "Consommation vs Cylindrée avec annotations")
+```
+
+## 5.3 Échelles personnalisées
+Créez des échelles personnalisées pour mieux adapter vos graphiques à vos données :
+
+```{r}
+library(scales)
+
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point(alpha = 0.1) +
+  scale_x_continuous(breaks = seq(0, 5, by = 0.5)) +
+  scale_y_continuous(labels = label_dollar(), breaks = seq(0, 20000, by = 5000)) +
+  theme_minimal() +
+  labs(title = "Prix des diamants en fonction du carat",
+       x = "Carat", y = "Prix ($)")
+```
+
+## 5.4 Graphiques interactifs avec plotly
+Vous pouvez rendre vos graphiques ggplot2 interactifs en utilisant la bibliothèque plotly :
+```{r}
+#library(plotly)
+
+p <- ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Consommation vs Cylindrée (interactif)")
+
+#ggplotly(p)
+```
+## 5.5 Cartes avec ggplot2
+ggplot2 peut également être utilisé pour créer des cartes simples :
+
+```{r}
+library(maps)
+world <- map_data("world")
+
+ggplot(world, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = "lightblue", color = "white") +
+  coord_map() +
+  theme_void() +
+  labs(title = "Carte du monde simplifiée")
+```
+
+## Introduction aux Scales dans ggplot2
+
+Les scales dans ggplot2 contrôlent comment les variables de vos données sont mappées aux propriétés visuelles de votre graphique. Elles permettent de modifier les axes, les légendes, les couleurs, les tailles, et plus encore.
+
+## 1. Scales Continues
+
+### scale_x_continuous() et scale_y_continuous()
+
+Ces fonctions contrôlent l'apparence des axes numériques continus.
+
+```{r continuous_scales}
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point() +
+  scale_x_continuous(
+    name = "Poids (1000 lbs)",
+    breaks = seq(1, 5, by = 1),
+    limits = c(1, 5)
+  ) +
+  scale_y_continuous(
+    name = "Miles par gallon",
+    trans = "log10"
+  ) +
+  ggtitle("Relation entre poids et consommation (échelle log)")
+```
+
+Arguments principaux :
+- `name` : nom de l'axe
+- `breaks` : positions des graduations
+- `limits` : limites de l'axe
+- `trans` : transformation de l'échelle (log10, sqrt, etc.)
+
+## 2. Scales Discrètes
+
+### scale_x_discrete() et scale_y_discrete()
+
+Pour les variables catégorielles.
+
+```{r discrete_scales}
+ggplot(mpg, aes(x = class, y = hwy)) +
+  geom_boxplot() +
+  scale_x_discrete(
+    name = "Classe de véhicule",
+    limits = c("compact", "midsize", "suv")
+  ) +
+  ggtitle("Consommation sur autoroute par classe de véhicule")
+```
+
+## 3. Scales de Couleur
+
+### scale_color_continuous() et scale_fill_continuous()
+
+Pour les variables continues mappées aux couleurs.
+
+```{r color_scales}
+ggplot(mtcars, aes(x = wt, y = mpg, color = disp)) +
+  geom_point(size = 4) +
+  scale_color_continuous(
+    name = "Cylindrée",
+    low = "blue", 
+    high = "red"
+  ) +
+  ggtitle("Relation poids/consommation, colorée par cylindrée")
+```
+
+### scale_color_discrete() et scale_fill_discrete()
+
+Pour les variables catégorielles mappées aux couleurs.
+
+```{r discrete_color_scales}
+ggplot(mpg, aes(x = class, fill = drv)) +
+  geom_bar() +
+  scale_fill_discrete(
+    name = "Type de transmission",
+    labels = c("4 roues motrices", "Avant", "Arrière")
+  ) +
+  ggtitle("Nombre de véhicules par classe et type de transmission")
+```
+
+## 4. Scales de Taille
+
+### scale_size_continuous()
+
+Pour mapper une variable continue à la taille des points.
+
+```{r size_scales}
+ggplot(mtcars, aes(x = wt, y = mpg, size = hp)) +
+  geom_point() +
+  scale_size_continuous(
+    name = "Puissance (ch)",
+    range = c(1, 10)
+  ) +
+  ggtitle("Relation poids/consommation, taille par puissance")
+```
+
+## 5. Scales de Date et d'Heure
+
+### scale_x_date() et scale_y_date()
+
+Pour les variables de type date.
+
+```{r date_scales}
+# Création d'un jeu de données d'exemple
+dates <- seq(as.Date("2023-01-01"), as.Date("2023-12-31"), by = "month")
+values <- runif(12, 0, 100)
+df <- data.frame(date = dates, value = values)
+
+ggplot(df, aes(x = date, y = value)) +
+  geom_line() +
+  scale_x_date(
+    name = "Date",
+    date_breaks = "2 month",
+    date_labels = "%b %Y"
+  ) +
+  ggtitle("Évolution d'une valeur au cours de l'année 2023")
+```
+
+Pourquoi utiliser les scales ?
+
+Personnalisation : Adapter l'apparence du graphique à vos besoins spécifiques.
+Lisibilité : Améliorer la compréhension des données en ajustant les axes, les couleurs, etc.
+Cohérence : Maintenir un style cohérent dans tous vos graphiques.
+
+
+Types de scales :
+
+Continues : Pour les variables numériques (ex: scale_x_continuous)
+Discrètes : Pour les variables catégorielles (ex: scale_x_discrete)
+Couleur : Pour mapper des variables aux couleurs (ex: scale_color_continuous, scale_fill_discrete)
+Taille : Pour mapper des variables à la taille des éléments (ex: scale_size_continuous)
+Date/Heure : Pour les variables temporelles (ex: scale_x_date)
+
+
+Arguments communs :
+
+name : Nom de l'axe ou de la légende
+breaks : Positions des graduations
+labels : Étiquettes des graduations
+limits : Limites de l'échelle
+trans : Transformation de l'échelle (log, sqrt, etc.)
+
+
+Scales de couleur :
+
+scale_color_* : Pour les contours ou les points
+scale_fill_* : Pour le remplissage des formes (barres, zones, etc.)
+
+
+Scales prédéfinies :
+
+Brewer : scale_color_brewer(), scale_fill_brewer() pour des palettes de couleurs prédéfinies
+Viridis : scale_color_viridis_c(), scale_fill_viridis_d() pour des palettes perceptuellement uniformes
+
+
+Transformations :
+
+Log : scale_y_log10() pour une échelle logarithmique
+Inverse : scale_y_reverse() pour inverser l'axe
+
+
+Combinaison avec les thèmes :
+
+Les scales contrôlent le mapping des données, tandis que les thèmes contrôlent l'apparence générale du graphique.
+Utilisez-les ensemble pour un contrôle complet sur l'apparence de votre visualisation.

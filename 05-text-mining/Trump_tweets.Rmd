@@ -1,0 +1,439 @@
+---
+title: "A Text Analysis of Trump's Tweets"
+author: "David Robinson"
+date: "10/7/2020"
+output: html_document
+---
+
+
+#Project Description
+This tweet containing a hypothesis about Donald Trump's Twitter account needs to be investigated with data:
+
+Every non-hyperbolic tweet is from iPhone (his staff). 
+
+Every hyperbolic tweet is from Android (from him).
+
+— Todd Vaziri (@tvaziri) August 6, 2016
+Others have explored Trump’s timeline and noticed this tends to hold up. And Trump himself did indeed tweet from a Samsung Galaxy until March 2017. But how could it be examined quantitatively? In this project, you will apply text mining and sentiment analysis to determine whether or not Trump does indeed write the angrier, Android tweets
+
+The dataset used in this project is from The Trump Twitter Archive by Brendan Brown, which contains all 35,000+ tweets from the @realDonaldTrump Twitter account from 2009 (the year Trump sent his first tweet) through 2018.
+
+# 1 The tweets
+![Caption for the picture.](/Users/feryalwindal/Desktop/Capture d’écran 2020-10-07 à 12.46.17.png)
+[ToddVaziri1](https://twitter.com/tvaziri/status/762005541388378112)
+
+@tvaziri's hypothesis about Donald Trump’s Twitter account
+When Trump wished the Olympic team good luck, he was tweeting from an iPhone. When he insulted a rival, he was usually tweeting from an Android. Is this an artifact showing which tweets are Trump’s own and which are by some handler in the 2016 campaign?
+Others have explored Trump’s timeline and noticed this tends to hold up. And Trump himself did indeed tweet from a Samsung Galaxy until March 2017. But how could we examine it quantitatively?  
+Let's load the content of Donald Trump’s timeline. Our dataset is from The Trump Twitter Archive by Brendan Brown (http://www.trumptwitterarchive.com/archive), which contains all 35,000+ tweets from the @realDonaldTrump Twitter account from 2009 (the year Trump sent his first tweet) through 2018. We'll filter it for the election period only, June 1, 2015 through November 8, 2016.
+
+## Task 1: Instructions
+Load the libraries and data, and filter for the election period.
+
+1-Load the dplyr, readr, tidyr and lubridate libraries.
+2-Read in the data, datasets/trump_tweets.csv, with read_csv() and filter for the election period between June 1, 2015, and November 8, 2016. Dates are in the created_at column.
+3-Inspect the first six rows using head(). Pay attention to the column names and how the data are formatted.
+
+
+```{r}
+# Load the libraries
+# .... YOUR CODE FOR TASK 1 ....
+
+# Read in the data
+tweets <- read_csv(...., guess_max = 36000) %>%
+  filter(.... , ....)
+
+# Inspect the first six rows
+# .... YOUR CODE FOR TASK 1 ....
+```
+
+### HINT 
+After loading readr you can read in a data file named, my_data.csv from the datasets folder and filter the data for the dates you need. Keeping only the data from January 28, 1976, to May 15, 2016, would look like this if dates are in the column, date:
+my_data <- read_csv("datasets/trump_tweets.csv")  %>% 
+  filter(date >= "1976-01-28", date <= "2016-05-15")
+  
+  
+# 2. Clean those tweets
+We'll clean the data by extracting the source application. We’re only looking at the iPhone and Android tweets. A much smaller number of tweets are from the web client or iPad.
+Overall, the cleaned data should include 2275 tweets from an iPhone device and 4240 tweets from an Android device.
+
+## Task 2: Instructions
+Count the number of tweets by the device, and then filter for tweets from iPhone and Android.
+
+1-Use count() to determine the number of tweets by each source.
+2-Select id_str, source, text, and created_at, and filter for tweets from iPhone and Android.
+3-Use extract() to remove the leading characters, "Twitter for ", in source.
+4-Inspect the first six rows.
+
+The output of count() is a column, n. extract() turns groups into new columns using a regular expression.
+Please, use help to learn more about count() and extract()
+```{r}
+# Count the nubmer of tweets by source
+tweets %>% ....
+
+# Clean the tweets
+cleaned_tweets <- tweets %>%
+# .... YOUR CODE FOR TASK 2 HERE ....
+  ....(.... %in% c(...., ....)) %>%
+  extract(...., "source", "(\\w+)$")
+
+# Inspect the first six rows
+# .... YOUR CODE FOR TASK 2 ...
+```
+### Hint 
+extract() splits one column into multiple columns using a regular expression. Within a set of piped functions, the first argument of extract() is the column to split. The second argument is the name of the new column(s), and the third argument is the regular expression used the split the column.
+....  %>% 
+ extract(column_to_split, "name_of_new_column(s)", "regex")
+ 
+# 3. Is "time" the giveaway?
+Most people are creatures of habit, and we would expect their tweet times to be a type of ‘signature’. We can certainly spot the difference here. Most tweets from the Android are in the early morning or later in the evening, while tweets from the iPhone occur more often in the afternoon.
+
+```{r}
+# Load the packages
+library(ggplot2)
+
+# Plot the percentage of tweets by hour of the day for each device
+cleaned_tweets %>%
+  ....(...., hour = hour(with_tz(...., "EST"))) %>%
+  # .... YOUR CODE FOR TASK 3 .... 
+  ggplot(aes(...., ...., .... = ....)) +
+  #.... YOUR CODE FOR TASK 3 .... 
+  scale_y_continuous(labels = scales::label_percent()) +
+  #.... YOUR CODE FOR TASK 3 ....
+```
+
+## Task 3: Instructions
+Plot the percentage of tweets by hour of the day for each device.
+
+1-Use count() to count the number of tweets from each device by hour (in "EST").
+2-Add a new column, percent, that is the percent of tweets by each device within each hour.
+3-Plot the percent of tweets by hour, colored by source as a line graph.
+4-Add labels to the plot using labs(x = "Hour of day (EST)", y = "% of tweets"), and an empty string for color so that no legend is displayed.
+
+### HINT
+The output of count() is a column,n. To create a new column, cnt_per, with the percent of tweets by device and hour, after the call to count() you would add a call to mutate() like so:
+
+mutate(cnt_per = n / sum(n)) %>%
+
+To remove a legend created by a grouping aesthetic, e.g. color=, set the color= in labs() to "".
+
+# 4. The quote tweet is dead
+Another place we can spot a difference is in Trump’s anachronistic behavior of “manually retweeting” people by copy-pasting their tweets, then surrounding them with quotation marks. These are known as quote tweets (https://www.theringer.com/tech/2018/5/2/17311616/twitter-retweet-quote-endorsement-function-trolls).
+
+[ToddVaziri2](https://twitter.com/realDonaldTrump/status/758512401629192192)
+
+Almost all the quote tweets are posted from the Android.
+After this plot, we’ll filter out the quote tweets in the remaining by-word analyses because they contain text from followers that may not be representative of Trump’s tweets.
+
+```{r}
+# Load stringr
+library(stringr)
+
+# Plot the number of tweets with and without quotes by device
+cleaned_tweets %>%
+  ....(....,
+        quoted = ifelse(str_detect(text, '^"'), ...., ....)) %>%
+  ggplot(aes(...., ...., fill = ....)) +
+  geom_bar(stat = "identity", position = ....) +
+  labs(x = "", y = "Number of tweets", fill = "") +
+  ggtitle('Whether tweets start with a quotation mark (")')
+```
+
+## Task 4: Instructions
+Create a bar plot of the number of tweets that are quoted and not quoted from each device.
+
+1-Use count() to determine the number of tweets quoted or not quoted by each device.
+2-Within ifelse(), set the true outcome to "Quoted", and the false outcome to "Not quoted".
+3-Add source as the x-variable and the number of quoted and not quoted tweets as the y-variable. Set fill= to whether the tweet was quoted or not.
+4-Set the correct parameter for position= within geom_bar() to display the bars for each device side-by-side.
+
+
+### HINT
+You can create, group, and count data in variable b within the call to count(). Use fill() in the ggplot aesthetics to color-code the groups in variable b, (in this example, Snowing or Not snowing), like so:
+
+data %>%
+  count(a,
+        b = ifelse(str_detect(text, '^"'), "Snowing", "Not snowing")) %>%
+  ggplot(aes(a, n, fill = b)) +
+  geom_bar() + 
+ ....
+Don't forget that the output of count() is column n.
+
+# 5. Links and pictures
+Another place we see a difference between the iPhone and Android tweets is in the sharing of links or pictures.
+It turns out that tweets from the iPhone were way more likely to contain either a picture or a link. This also makes sense with our narrative: iPhone (presumably run by the campaign) tends to write “announcement” tweets about events, like this:
+[ToddVaziri3](https://twitter.com/realDonaldTrump/status/762110918721310721)
+
+While Android (Trump himself) tends to write picture-less tweets like:
+
+[ToddVaziri3](https://twitter.com/realDonaldTrump/status/762400869858115588)
+
+```{r}
+# Count the number of tweets with and without picture/links by device
+tweet_picture_counts <- cleaned_tweets %>%
+  filter(!str_detect(text, '^"')) %>%
+  ....(....,
+        picture = ifelse(....(text, "t.co"),
+                         "Picture/link", "No picture/link"))
+
+# Make a bar plot 
+ggplot(...., aes(...., ...., fill = ....)) +
+  geom_bar(stat = "identity", position = ....) +
+  labs(x = "", y = "Number of tweets", fill = "")
+```
+
+##Task 5: Instructions
+Create a bar plot of the number of tweets that do and do not have a picture/link from each device.
+
+1-After filtering out all the quote tweets, count the number of tweets with a picture/link by each device.
+2-Add the correct stringr function within ifelse() to detect the pattern, t.co, in the text column.
+3-Using the new data frame, add source as the x-variable and the number of tweets as the y-variable. Set fill= to whether or not the tweet had a picture/link.
+4-Set the correct parameter for position= within geom_bar() to display the bars for each device side-by-side.
+
+### HINT
+There are a lot of great functions in stringr that help you work with strings. We've used str_detect() in the last two tasks to detect patterns in strings. The output of str_detect() is TRUE or FALSE, which works well with other functions for filtering and conditional statements.
+
+Don't forget that the output of count() is column n.
+
+#6. Comparison of words
+Now that we’re sure there is a difference between these two platforms, what can we say about the difference in the content of the tweets? We’ll use the tidytext package that Julia Silge and I developed.
+We start by dividing lines of text into individual words using unnest_tokens() (see this vignette for more), and by removing some common “stopwords”.
+```{r}
+# Load the tidytext package
+library(tidytext)
+
+# Create a regex pattern
+reg <- "([^A-Za-z\\d#@']|'(?![A-Za-z\\d#@]))"
+
+# Unnest the text strings into a data frame of words
+tweet_words <- cleaned_tweets %>%
+  filter(!str_detect(text, ....)) %>%
+  mutate(text = str_replace_all(text, "https://t.co/[A-Za-z\\d]+|&amp;", "")) %>%
+  unnest_tokens(...., ...., token = "regex", pattern = ....) %>%
+  filter(!word %in% ....,
+         str_detect(word, "[a-z]"))
+
+# Inspect the first six rows of tweet_words
+head(tweet_words)
+```
+
+## Task 6: Instructions
+Create a new data frame of words from all the tweets.
+
+1-Add the correct regex pattern to remove quote tweets. Look back at previous tasks for help.
+2-Use unnest_tokens() to transform the lines of text into words (in a new word column) using the regex pattern in reg.
+3-Remove any stopwords using the correct column from the stop_words data frame.
+
+The data frame stop_words is loaded with tidytext. The column word contains the "stopwords" in the data frame stop_words.
+
+### HINT 
+Regex stands for REGular EXpression and is a sequence of characters that define a search pattern.
+
+To unnest text in column t, directed by a regex pattern given in reg_pat, where each word is placed in a new column w, you would use unnest_tokens() like so:
+
+data  %>% 
+  unnest_tokens(w, t, token = "regex", pattern = reg_pat) 
+  
+# 7. Most common words
+What are the most common words @realDonaldTrump tweets? This plot should look familiar to anyone who has seen the feed. 
+
+```{r}
+# Plot the most common words from @realDonaldTrump tweets
+tweet_words %>%
+  count(...., sort = ....) %>%
+  head(....) %>%
+  mutate(word = reorder(...., ....)) %>%
+  ggplot(aes(...., ....)) +
+  geom_bar(stat = "identity") +
+  ylab("Occurrences") +
+  # .... YOUR CODE FOR TAST 7 ....
+```
+
+## Task 7: Instructions
+Plot the most common words.
+
+1-Use count() to count the most common words and sort them.
+2-Take the first 20 words and reorder them according to their number of occurrences.
+3-Plot word on the x-axis, the number of occurrences on the y-axis, and flip the coordinates.
+
+### HINT 
+Regex stands for REGular EXpression and is a sequence of characters that define a search pattern.
+
+To unnest text in column t, directed by a regex pattern given in reg_pat, where each word is placed in a new column w, you would use unnest_tokens() like so:
+
+data  %>% 
+  unnest_tokens(w, t, token = "regex", pattern = reg_pat) 
+  
+
+# 8. Common words: Android vs. iPhone (i)
+Now let’s consider which words are most common from the Android relative to the iPhone, and vice versa. We’ll use the simple measure of log odds ratio for each word, calculated as:
+
+![Caption for the picture.](/Users/feryalwindal/Desktop/Capture d’écran 2020-10-09 à 12.41.46.png)
+
+We'll only be looking at words that occur at least five times in both platforms. There will be some instances with fewer than five uses in either the Android or the iPhone, but never one with fewer than five total. If there is one occurrence of a word in the Android, you'll know that there are at least four occurrences in the iPhone for the same word.
+
+The “ +1
+ ”, called Laplace smoothing, are to avoid dividing by zero and to put more trust in common words.
+
+```{r}
+# Create the log odds ratio of each word
+android_iphone_ratios <- tweet_words %>%
+  count(word, source) %>%
+  group_by(....)  %>% 
+  filter(....(....) >= ....) %>%
+  spread(...., n, fill = 0) %>%
+  ungroup() %>%
+  mutate_if(is.numeric, ~((. + 1) / sum(. + 1))) %>%
+  mutate(logratio = log2(.... / ....)) %>%
+  arrange(....(....))
+
+# Inspect the first six rows
+head(android_iphone_ratios)
+```
+
+
+## Task 8: Instructions
+Create the log odds ratio for each word.
+
+1-After counting the occurrences of each word by its source, group by the word, and filter for words that occur at least five times in both platforms.
+2-Use spread() to turn the row values of source into their columns.
+3-Divide Android by iPhone and take the binary log of the ratio to create logratio.
+4-Arrange the data in descending order of the logratio.
+
+
+### HINT 
+A lot is going on in this task. Take it one step at a time.
+
+If you're trying to filter for words that occur at least ten times in both platforms, you will sum the occurrences and filter for those greater than or equal to ten, like so:
+
+  count(word, source)  %>%   
+  group_by(word)  %>% 
+  filter(sum(n) >= 10)  
+
+#9. Common words: Android vs. iPhone (ii)
+Now that we've calculated the log odds ratio of each word, we'll plot the 15 words with the greatest log odds ratio for the Android and the iPhone.
+With the way we've set up the log odds ratio, positive values are assigned to words from the Android, and negative values are assigned to the iPhone.
+
+
+```{r}
+# Plot the log odds ratio for each word by device
+android_iphone_ratios %>%
+  ....(logratio > 0) %>%
+  top_n(...., ....(logratio)) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, logratio)) %>%
+  ggplot(aes(...., ...., fill = logratio < 0)) +
+  ....(stat = ....) +
+  coord_flip() +
+  ylab("Android / iPhone log ratio") +
+  scale_fill_manual(name = "", labels = c("Android", "iPhone"),
+                    values = c("red", "lightblue"))
+```
+
+
+##Task 9: Instructions
+Plot the log odds ratios by device.
+1-Group the data by positive and negative values.
+2-Get the top 15 values of each group.
+3-In the call to ggplot(), put the words on the x-axis and their log ratio on the y-axis.
+4-Use the correct parameter in geom_bar() to map the height of the bar to the data value in y.
+
+If you want to take the top positive and negative values from grouped variables, you might want to think about absolute values.
+
+### HINT
+
+If a variable is grouped, top_n() selects the top or bottom entries (if supplied a negative number) in each group and will include more than n rows if there are ties. To get the top 35 values of variable a that has been grouped by its sign (positive or negative), you need to take the absolute value of the variable like this:
+
+data  %>% 
+  group_by(a > 0) %>%
+  top_n(35, abs(a)) %>%
+  ungroup()
+
+
+#10. Adding sentiments
+What do we know so far?
+Most hashtags come from the iPhone. Indeed, almost no tweets from Trump's Android contained hashtags, with some rare exceptions like this one. (This is true only because we filtered out the quoted "retweets," as Trump does sometimes quote tweets like this that contain hashtags).
+Words like "join" and times like "7 pm", came only from the iPhone. The iPhone is responsible for event announcements like this one ("Join me in Houston, Texas tomorrow night at 7 pm!")
+Emotionally charged words, like "poorly," "angry," and "stupid" were more common on Android. This supports the original hypothesis that this is the "angrier" or more hyperbolic account.
+Since we’ve observed a difference in word use between the Android and iPhone tweets, let's see if there's a difference in sentiment. We’ll work with the NRC Word-Emotion Association lexicon, available from the tidytext package, which associates words with ten sentiments: positive, negative, anger, anticipation, disgust, fear, joy, sadness, surprise, and trust.
+
+```{r}
+# Create a sentiment data frame from the NRC lexicon
+nrc <- ....("datasets/nrc.rds")
+
+# Join the NRC lexicon to log odds ratio data frame
+android_iphone_sentiment <- android_iphone_ratios %>%
+  ....(...., by = ....) %>%
+  filter(!sentiment %in% c("positive", "negative")) %>%
+  mutate(sentiment = ....(sentiment, -logratio),
+         word = ....(word, -logratio)) %>%
+  group_by(sentiment) %>%
+  ....(10, abs(logratio)) %>%
+  ungroup()
+
+# Inspect the first six rows
+head(android_iphone_sentiment)
+```
+
+##Task 10: Instructions
+Add the NRC sentiment lexicon to the log odds ratio data frame.
+
+1-Read in the NRC sentiment lexicon with read_rds().
+2-Use a join that will keep all the variables from android_iphone_ratios, and if there are multiple matches between android_iphone_ratios and nrc, all combinations of the matches will be returned.
+3-Reorder the values of sentiment and word.
+4-Take the top 10 values of each sentiment group.
+
+### HINT
+The type of join that will keep all the variables from x and all combinations of matches if there are multiple matches between x and x is an inner_join.
+
+x  %>% 
+  inner_join(y, by = "common_var")
+  
+# 11. Android vs. iPhone sentiments
+Now we'll take a look at the sentiments of the common words from both devices. We'll see that a lot of words annotated as negative sentiments (with a few exceptions like “crime” and “terrorist”) are more common in Trump’s Android tweets than the campaign’s iPhone tweets.  
+  
+```{r}
+# Plot the log odds ratio of words by device in groups sentiments
+ggplot(...., aes(...., ...., fill = logratio < 0)) +
+  ....(~ ...., scales = "free", .... = ....) +
+  geom_bar(.... = ....) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x = "", y = "Android / iPhone log ratio") +
+  scale_fill_manual(name = "", labels = c("Android", "iPhone"),
+                    values = c("red", "lightblue"))
+```
+
+## Task 11: Instructions
+Plot the log odds ratio of each word from both devices by sentiment.
+
+1-Add the data frame and x and y aesthetics to plot the log odds ratio of each word.
+2-Facet the data by sentiment and create two rows.
+3-Use the correct parameter in geom_bar() to map the height of the bar to the data value in y.
+
+### HINT
+Facets in ggplot2 are subplots that each display one subset of the data. In a plot of x and y, you can subset the data by a grouped variable, z, into 3 rows of subplots like so:
+
+ggplot(dataframe, aes(x, y,)) +
+  facet_wrap(~ z, nrow = 3) +
+  geom_point() 
+
+#12. Conclusion: The ghost in the political machine
+There's a difference in style and sentiment between Trump's tweets from the Android and the iPhone. We know Trump used the Android until March 2017, but who was tweeting from the iPhone on Trump's behalf? let's look together a New Yorker article about Tony Schwartz, Trump’s ghostwriter for The Art of the Deal (https://www.newyorker.com/magazine/2016/07/25/donald-trumps-ghostwriter-tells-all). Of particular interest was how Schwartz imitated Trump’s voice and philosophy:
+
+"In his journal, Schwartz describes the process of trying to make Trump’s voice palatable in the book. It was kind of “a trick,” he writes, to mimic Trump’s blunt, staccato, no-apologies delivery while making him seem almost boyishly appealing…. Looking back at the text now, Schwartz says, “I created a character far more winning than Trump is.”
+
+A lot has been written about Trump’s mental state. But I’d rather get inside the head of the anonymous staffer whose job is to imitate Trump’s unique cadence (“Very sad!”) or put a positive spin on it, to millions of his followers. Are they a true believer, or just a cog in a political machine, mixing whatever mainstream appeal they can into the @realDonaldTrump concoction? Like Tony Schwartz, will they one day regret their involvement?
+
+```{r}
+anonymous_iPhone_tweeter <- ....
+```
+
+## Task 12: Instructions
+
+What do you think?
+
+Pick one: "True Believer" or "Cog"
+
+There is no wrong answer. You decide.
+
+

@@ -1,0 +1,988 @@
+---
+title: "Text analysis"
+author: "Feryal WINDAL, course inspired by the DataCamp platform"
+date: "10/19/2021"
+output: html_document
+---
+
+Dans ce cours nous allons parcourir les différentes actions pour faire une analyse de texte.
+
+Pour ce faire nous aurons besoin des librairies, ggplot2, tidyverse et dyplr.
+Nous n'avons pas besoin de charger toutes ces librairies, tidyverse complile déjà ces librairies 
+
+###############################################################
+
+In this course we will go through the different actions to do a text analysis.
+
+To do this we will need the libraries, ggplot2, tidyverse and dyplr.
+We don't need to load all these libraries, tidyverse already compliles these libraries
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(readr)
+```
+
+```{r}
+#setwd("/Users/feryalwindal/Documents/Documents - MacBook Pro de Feryal/R-PROGRAMMING-2021/TEXT-MINING")
+```
+
+You can see that there are 1,833 rows. You can also see that there are four columns: the date the review was written, the product being reviewed, the star rating each reviewer gave the product, and the review itself.
+###############################################################
+
+
+Vous pouvez voir qu'il y a 1 833 lignes. Vous pouvez également voir qu'il y a quatre colonnes : la date à laquelle l'avis a été rédigé, le produit en cours d'évaluation, le nombre d'étoiles que chaque évaluateur a attribué au produit et l'avis lui-même.
+```{r}
+review_data<-read_csv("Roomba Reviews.csv")
+```
+
+
+```{r}
+review_data
+```
+
+
+Calculons le nombre d'étoiles moyen pour l'un des produits. Pour ce faire, nous allons faire un filtre sur notre jeu de donnée. Dans ce cas, nous ne voulons que les lignes où la colonne Produit est égale au modèle 650 Roomba for pets.
+Nous ajoutons la fonction summarize qui contient la fonction mean et nous créons ainsi une nouvelle variable, stars_mean pour laquelle on assigne la moyenne de la colonne Stars du modèle filtré iRobot Roomba 650 for Pets.
+
+
+Let's calculate the average star rating for one of the products. To do this, we are going to do a filter on our data set. In this case, we only want the rows where the Product column equals the 650 Roomba for pets model.
+We add the summarize function which contains the mean function and we thus create a new variable, stars_mean for which we assign the average of the Stars column of the iRobot Roomba 650 for Pets filtered model.
+
+
+```{r}
+review_data %>%
+  filter(Product=="iRobot Roomba 650 for Pets") %>%
+  summarize(stars_mean=mean(Stars))
+```
+Nous pouvons répéter ce processus pour calculer le nombre moyen d'étoiles pour d'autres produits ou nous pouvons simplement utiliser la fonction group_by() à la place de filter()
+
+
+Nous pouvons répéter ce processus pour calculer le nombre moyen d'étoiles pour d'autres produits ou nous pouvons simplement utiliser la fonction group_by() à la place de filter()
+
+```{r}
+review_data %>%
+  group_by(Product) %>%
+  summarize(stars_mean=mean(Stars))
+```
+
+Nous pouvons faire le même processus, avec la variable "Reviews" mais nous aurons des erreurs.
+En effet cette variable ne peut pas nous donner des moyenne, nous devons ajouter une structure avant de pouvoir l'analyser.
+
+
+
+We can do the same process, with the "Reviews" variable, but we will get some errors.
+Indeed this variable cannot give us average, we must add a structure before being able to analyze it.
+```{r}
+review_data %>%
+  group_by(Product) %>%
+  summarize(stars_mean=mean(Review))
+```
+Les résumés groupés sont puissants pour explorer et analyser les données catégorielles avec des résumés tels que mean(), max() et min utilisées sur les données numériques
+Mais que se passe si on souhaite résumer des données catégoriques ?
+C'est une question très importante puisque les données textuelles sont catégorielles.
+
+Regardons une nouvelle fois sur notre jeu de données.
+
+
+
+Grouped summaries are powerful for exploring and analyzing categorical data with summaries such as mean (), max (), and min used on numeric data
+But what if we want to summarize categorical data?
+This is a very important question since textual data is categorical.
+
+Let's take another look at our dataset.
+```{r}
+review_data
+```
+
+un autre avantage d'un tibble, est que chaque colonne a à la fois un nom et son type clairement répertoriés.
+
+
+Généralement le résumé de base des données catégorielles est un décompte.
+Nous pouvons obtenis un décompte de données catégoreilles en résumant avec une fonction simplement appelée n().
+Par exemple ici, n () calcule le nombre de lignes dans le groupe actuel, nous obtenons bien 1833 lignes.
+Notr qu'il n'y apa s d'argument dans la fonction n().
+
+
+
+
+Another advantage of a tibble, is that each column has both a name and its type clearly listed.
+
+
+Usually the basic summary of categorical data is a count.
+We can get a categorized data count by summarizing with a function simply called n ().
+For example here, n () calculates the number of rows in the current group, we get 1833 rows.
+Note that there is no argument in the n () function.
+```{r}
+review_data %>%
+  summarise(number_rows= n())
+```
+
+Maintenant si nous combinons la fonction n() avec group_by(), nous pouvons obtenir le nombre de ligne pour chaque produit.
+
+
+Now if we combine the n () function with group_by (), we can get the number of rows for each product.
+```{r}
+review_data %>%
+  group_by(Product) %>%
+  summarize(number_rows=n())
+```
+
+Comme nous pouvons le voir, il y a environ deux fois plus de lignes ou d'avis pour le modèle 880 Roomba que pour le modèle 650.
+
+Autre façon de le faire est d'utiliser la fonction count()
+
+
+
+As we can see, there are about twice as many lines or reviews for the 880 Roomba model as there are for the 650 model.
+
+Other way to do this is to use the count () function
+
+```{r}
+review_data %>%
+  count(Product) 
+```
+Ici, nous comptons directement le nombre de lignes pour chaque produit.
+
+Nous pouvons compter des données catégorielles, mais le texte n'est pas toujours structuré.
+Nous devons imposer une structure au texte, de préférence d'une manière qui soit conforme aux principes tidyverse que nous puissions continuer à utiliser les fonction que nous connaissons et aimons.
+
+Le package tidytext nous permet de structrurer du texte.
+Ce package a été développé par Julia Silge et David Robinson.
+Il fournit une suite d'outils puissant qui permettent de structurer rapidement et facilement le texte et de l'analyser.
+
+Nous allons imposer une structure au texte en divisant chque partie en mots distincts.
+Dans le domaine du traitement du langage naturel, cela s'appelle un sac de mots
+
+Sac à mots = mots dans le documents qui sont indépendants. Nous ne nous souvions pas de la syntaxe ou de la structure des avis, nous découpons chaque partie en mots et on les mélange dans un sac.
+Chaque corps du texte dinstinct est un document, dans notre cas, les revieuw ou les critiques.
+Chaque mot unique est connu comme un terme.
+chaque occurence d'un terme appelé jeton "token", ainsi, découper des documents en mots est connu sous le nom de tokenisation.
+
+
+
+Here we directly count the number of rows for each product.
+
+We can count categorical data, but the text is not always structured.
+We need to impose structure on the text, preferably in a way that conforms to tidyverse principles so that we can continue to use the functions we know and love.
+
+The tidytext package allows us to structure text.
+This package was developed by Julia Silge and David Robinson.
+It provides a suite of powerful tools that allow you to quickly and easily structure text and analyze it.
+
+We will impose a structure on the text by dividing each part into separate words.
+In the field of natural language processing, this is called a bag of words.
+
+Word bag = words in the documents that are independent. We don't remember the syntax or structure of the reviews, we break each part down into words and shuffle them into a bag.
+Each body of the instinctive text is a document, in our case the reviews or the critiques.
+Every single word is known as a term.
+each occurrence of a term called a "token", thus breaking up documents into words is known as tokenization.
+
+```{r}
+library(tidytext)
+```
+
+commençons par découvrir une nouvelle fonction associée à ce package :
+
+
+let's start by discovering a new function associated with this package:
+```{r}
+review_data
+```
+
+```{r}
+tidy_review<-review_data %>%
+  unnest_tokens(word, Review)
+tidy_review
+```
+Comme vous pouviez le voir, cette fonction a subdivisé les colonnes Review en mots. 
+Au lieu d'une colonne avec une critique dans chaque ligne, nous avons maintenant une colonne avec un mot dans chque ligne.
+En bonus, unnest_tokens() a fait du nettoyage pour nous. La ponctuation a disparu, chaque mot est en miniscule et l'espace blanc a été supprimé.
+
+nous obtenons ainsi  229481 lignes.
+Maintenant nous avons imposé une structure ordonnée au text, nous pouvons compter les mots en utilisant la fonction count()
+
+Pour simplifier la lecture des comptes, nous utilisons à nouveau la fonction arrange() et la fonction desc() afin de simplifier la lecture du résulat.
+
+
+
+As you could see, this function subdivided Review columns into words.
+Instead of a column with a review in each row, we now have a column with a word in each row.
+As a bonus, unnest_tokens () did some cleanup for us. Punctuation is gone, every word is lowercase and white space has been removed.
+
+we thus obtain 229,481 lines.
+Now we have imposed an ordered structure on the text, we can count the words using the count () function
+
+To simplify the reading of the accounts, we again use the function arrange () and the function desc () in order to simplify the reading of the result
+```{r}
+tidy_review %>%
+ count(word) %>%
+  arrange(desc(n))
+  
+```
+Comme vous pouvez le remarquer, les mots courants sont les mots communs. Comme "the", "it"...ce qui ne nous donne pas beaucoup d'information sur le contenu des avis.
+Nous devons faire un nettoyage supplémentaire avant que notre nombre de mots ne soit informatif.
+Ces mots courants et non informatids sont connus comme stop words et nous souhaitons les supprimer de notre bloc de données.
+
+Nous allons utiliser quelques fonctions du package dplyr.
+Ce sont des fonctions de jointure anti_join()
+Comme leur nom l'indique, elles permettent la jointure entre deux trames de données sur la base d'une ou plusieurs colonnes correspondantes.
+
+Pour illustrer anti_join(), nous allons d'abord voir son effet, sur ce petit exemple :
+
+
+
+As you can see, common words are common words. Like "the", "it" ... which doesn't give us a lot of information on the content of the reviews.
+We need to do some extra cleaning before our word count is informative.
+These common, non-informative words are known as stop words and we want to remove them from our data block.
+
+We are going to use some functions from the dplyr package.
+These are anti_join () join functions
+As their name suggests, they allow the join between two data frames on the basis of one or more corresponding columns.
+
+To illustrate anti_join (), we will first see its effect, on this small example:
+```{r}
+table1<-data.frame(id=c(1:5), animal=c("cat", "dog", "parakeet", 
+"lion", "duck"))
+ table1
+ table2<-table1[c(1,3,5),]
+table2
+ 
+```
+Pour identifier les lignes qui existent dans la table1 et qui n'existent pas dans la table2, nous pouvons le faire avec les stratégies suivantes :
+
+
+To identify which rows exist in table1 and which don't exist in table2, we can do it with the following strategies:
+```{r}
+# strategy 1
+table1[!table1$id%in%table2$id,]
+```
+
+```{r}
+# strategy 2
+table1[is.na(match(table1$id,table2$id)),]
+```
+
+```{r}
+library(dplyr)
+anti_join(table1, table2, by="id")
+```
+La fonction anti_join() donne une façon de le faire très simplifiée.
+
+Prenons un autre exemple avec plusieur colonnes :
+
+The anti_join () function gives a very simplified way of doing this.
+
+Let's take another example with several columns:
+```{r}
+table1<-data.frame(state=rep(1:3, each=2), county=rep(c("A", "B"), 3),
+                   vals=rnorm(6))
+table1
+```
+
+
+```{r}
+table2<-table1[c(1,3,4),]
+table2
+```
+
+```{r}
+anti_join(table1, table2, by=c("state", "county"))
+```
+
+Revenons ici à notre exemple du cours. Nous allons nous interesser aux données tokenisées 
+
+
+Let's go back to our example of the course here. We will focus on tokenized data
+
+```{r}
+tidy_review<-review_data %>%
+  unnest_tokens(word, Review)
+tidy_review
+```
+
+```{r}
+tidy_review2<-review_data %>%
+  unnest_tokens(word, Review)%>%
+  
+  anti_join(stop_words)
+
+tidy_review2
+```
+
+Vous pouvez remarquer que le nombre de lignes a été considérablement réduit.
+
+Nous pouvons maintenant voir les mots les plus couramment utilisés dans les avis sur les produits, ceci permettra de refleter un contenu informatif réel.
+
+
+You can notice that the number of rows has been drastically reduced.
+
+We can now see the most commonly used words in product reviews, this will reflect actual informational content.
+
+```{r}
+tidy_review2 %>%
+  count(word) %>%
+  arrange(desc(n))
+```
+
+Nous passons dans cette partie aux outils de visualisation des données textuelles avec ggplot2.
+Avant de commencer, nous allons créer une nouvelle colonne avec la fonction mutate "id". Nous introduisons ici une nouvelle fonction row_number() qui permet comme son nom l'indique de compter les ligne et attribuer un nombre pour chaque ligne.
+Nous crééons une colonne id pour chque revieux 
+
+Dans un premier temps, nous allons créer une nouvelle colonne ID qui va attribuer un numéro pour chaque ligne.
+
+
+In this part, we move on to tools for visualizing textual data with ggplot2.
+Before we start, we will create a new column with the mutate "id" function. We introduce here a new row_number () function which allows, as its name suggests, to count rows and assign a number for each row.
+We create an id column for each revieux
+
+First, we will create a new ID column which will assign a number for each row.
+
+```{r}
+tidy_review <-review_data %>%
+  mutate(id=row_number())
+tidy_review
+```
+Nous allons comme précédemment, subdiviser chaque commentaires en mots 
+
+
+As before, we will subdivide each comments into words
+```{r}
+tidy_review <-review_data %>%
+  mutate(id=row_number())%>%
+  unnest_tokens(word, Review)
+tidy_review
+```
+Maintenant supprimer tous les mots communs "les stops words".
+
+Now remove all common words "stop words".
+```{r}
+
+tidy_review <-review_data %>%
+  mutate(id=row_number())%>%
+  unnest_tokens(word, Review)%>%
+  anti_join(stop_words)
+tidy_review
+```
+
+Ici, l'id, la date, le produit, le nombre d'étoiles représentent un tibble bien rangé qui nous permettra d'analyser ces données.
+Quand on utilise les packages comme tidyverse il est important de ranger les données comme nous venons de le faire. Ainsi, il est plus facile pour la suite d'utiliser les fonctions comme count(), arrange(), desc()...pour en faciliter la lecture.
+
+Mieux encore, nous pouvons utiliser le package ggplot2 pour réaliser des graphiques.
+Commençons par un graphique à barres.
+Le premier argument de la fonction ggplot est nos données de comptage, le deuxième argument est en utilisant la fonction aes() pour mapper les colonnes de nos données aux éléments spécifiés. Ici il est naturel d'affecter un mot à l'axe des x et n (le nombre) à l'axe des y.
+Nous ajoutons ainsi, geom_col() pour dessiner les barres. "col" de geom_col signifie colonne. C'est une autre façon de faire référence à un graphique à barres.
+
+
+Here, the id, the date, the product, the number of stars represent a neat tibble that will allow us to analyze this data.
+When using packages as tidyverse it is important to arrange the data as we have just done. Thus, it is easier later to use functions like count (), arrange (), desc () ... to make them easier to read.
+
+Better yet, we can use the ggplot2 package to do graphics.
+Let's start with a bar graph.
+The first argument of the ggplot function is our count data, the second argument is using the aes () function to map the columns of our data to the specified elements. Here it is natural to assign a word to the x-axis and n (the number) to the y-axis.
+We thus add, geom_col () to draw the bars. "col" of geom_col means column. This is another way of referring to a bar chart.
+```{r}
+word_counts <-tidy_review%>%
+  count(word)%>%
+  arrange(desc(n))
+ggplot(word_counts, aes(x=word, y=n)) +geom_col()
+
+```
+Ce que nous remarquons est que ce graphique n'est pas très utile et nous indique pas trop d'informations. Il est aussi très difficile à lire. Comme vous pouvez le remarquer, il traite beaucoup de mots à la fois.
+
+or, ce qui nous intéresse le plus sont les mots avec le plus de reccurrence.
+Après avoir compté les mots, nous pouvons les filtrer en fonction de leur nombre.
+Ici, nous ne gardons que les mots utilisée plus de 300 fois dans les avis sur les produits.
+
+
+What we notice is that this graph is not very useful and does not tell us too much information. It is also very difficult to read. As you can see, it deals with a lot of words at once.
+
+however, what interests us the most are the words with the most recurrence.
+After counting the words, we can filter them based on their number.
+Here we only keep words that are used more than 300 times in product reviews.
+
+```{r}
+word_counts2 <-tidy_review%>%
+  count(word)%>%
+  filter(n>300)%>%
+  arrange(desc(n))
+word_counts2
+```
+Ce que l'on peut remarquer est que nous sommes passé de plus de 9000 lignes à seulement 25 lignes.
+Nous pouvons maintenant l'intégrer à un graphique à barres.
+
+
+What can be noticed is that we have gone from over 9,000 lines to just 25 lines.
+We can now integrate it into a bar chart.
+```{r}
+word_counts2 <-tidy_review%>%
+  count(word)%>%
+  filter(n>300)%>%
+  arrange(desc(n))
+ggplot(word_counts2, aes(x=word, y=n)) +geom_col()
+#word_counts2
+```
+
+Comme vous pouvez le remarquer les mots se chevauchent et cela rend la lecture difficile sur l'axe des x.
+Pour remédier à cela, nous allons utiliser la fonction coord_flip().
+elle inverse le graphique ce qui permet une meilleure lecture du graphique.
+
+
+As you can see the words overlap and this makes it difficult to read on the x axis.
+To remedy this, we will use the coord_flip () function.
+it inverts the graph which allows a better reading of the graph.
+```{r}
+word_counts2 <-tidy_review%>%
+  count(word)%>%
+  filter(n>300)%>%
+  arrange(desc(n))
+ggplot(word_counts2, aes(x=word, y=n)) +geom_col()+coord_flip()+ggtitle("Review Word Counts")
+
+```
+
+
+Dans un second temps, nous allons nous intéresser aux mots vides les "stop_words".
+Comme vous avez pu remarquer, nous avons encore des mots qui ne sont pas informatifs dans notre jeu de données.
+
+In a second step, we will be interested in the empty words the "stop_words".
+As you may have noticed, we still have words that are not informative in our dataset.
+
+```{r}
+stop_words
+```
+
+Pour le faire nous allons dans un premier temps introduire la fonction tribble()
+Exemple : 
+
+To do this we will first introduce the tribble () function
+Example :
+```{r}
+tribble(
+  ~columnX, ~columnY,
+  "v",   5,
+  "w",   10,
+  "x",   15,
+  "y",   20,
+  "z",   25,
+
+)
+```
+Ici, les deux mots que nous devons supprimer sont roomba et 2 qui nous nous apportent aucun information supplémentaires.
+
+Ainsi, nous avons contruit notre bloc de données inutiles.
+
+Ici, les deux mots que nous devons supprimer sont roomba et 2 qui nous nous apportent aucun information supplémentaires.
+
+Ainsi, nous avons contruit notre bloc de données inutiles.
+
+```{r}
+tribble(
+  ~word, ~lexicon,
+  "roomba", "CUSTOM",
+  "2", "CUSTUM"
+)
+
+```
+nous allons combiner le stop_words original avec celui que nous venons de créer.
+Nous utiliser la fonction bind_row() pour ajouter au niveau des lignes les données correspondantes au tableau précédent.
+
+we will combine the original stop_words with the one we just created.
+We use the bind_row () function to append the corresponding data to the previous table at the row level.
+```{r}
+custom_stop_words <-tribble(
+  ~word, ~lexicon,
+  "roomba", "CUSTOM",
+  "2", "CUSTUM"
+)
+stop_words2 <-stop_words %>%
+  bind_rows(custom_stop_words)
+```
+
+Nous allons maintenant nettoyer et tokeniser les données review_data original en supprimant les mots "roomba" et "2". Pour ce faire nous n'utilisons plus le stop_words mais stop_words2.
+
+
+Nous allons maintenant nettoyer et tokeniser les données review_data original en supprimant les mots "roomba" et "2". Pour ce faire nous n'utilisons plus le stop_words mais stop_words2.
+
+```{r}
+tidy_review <-review_data %>%
+  mutate(id=row_number())%>%
+  select(id, Date, Product, Stars, Review)%>%
+  unnest_tokens(word, Review)%>%
+  anti_join(stop_words2)
+tidy_review 
+```
+faisons un test pour vérifier si le mot roomba existe encore
+
+
+let's do a test to see if the word roomba still exists
+```{r}
+tidy_review %>%
+  filter(word=="roomba")
+```
+
+## Factors 
+Autre problématique est liée au graphique barres que nous avons obtenu, ce que l'on remarque est que la fonction arrange n'affecte pas le tracé.
+
+
+Another problem is related to the bar graph that we had obtained, what we notice is that the arrange function does not affect the plot.
+```{r}
+word_counts2 <-tidy_review%>%
+  count(word)%>%
+  filter(n>300)%>%
+  arrange(desc(n))
+ggplot(word_counts2, aes(x=word, y=n)) +geom_col()+coord_flip()+ggtitle("Review Word Counts")
+
+```
+
+Pour résoudre ce problème, nous devons à nouveau travailler sur les colonnes.
+Nous allons cette fois ci utiliser une autre structure de données que nous connaissons : Factor. Une colonne dans cette structure de données peut être triée par ordre alphabétique. Ce pendant, une colonne de facteur peut inclure des informations sur l'ordre dans lequel les mot doivent apparaitre.
+
+Après avoir compté et filtré les mots qui se produisent plus de 300 fois, nous utilisons mutate() pour créer une nouvelle colonne. La fonction fct_reorder, pour factor réorganiser avec deux arguments; les mots et leurs nombres c-à-d la colonne que nous voulons réorganiser et la colonne que nous voulons réorganiser par.
+Ici nous voulons que notre nouvelle colonne word2 soit composée de mots ordonnés par le nombre de mots n.
+
+
+To solve this problem, we have to work on the columns again.
+This time we are going to use another data structure that we know: Factor. A column in this data structure can be sorted alphabetically. However, a factor column can include information about the order in which the words should appear.
+
+After counting and filtering the words that occur more than 300 times, we use mutate () to create a new column. The function fct_reorder, to factor reorganize with two arguments; the words and their numbers i.e. the column we want to rearrange and the column we want to rearrange by.
+Here we want our new word2 column to be made up of words ordered by the number of words n.
+
+```{r}
+word_counts<-tidy_review %>%
+  count(word)%>%
+  filter(n>300)%>%
+  mutate(word2=fct_reorder(word, n))
+word_counts
+```
+
+en effet, nous pouvons voir que cette nouvelle colonne est de type facteur.
+Ainsi, nous pouvons maintenant créer un graphique barres par ordre décroissant beaucoup plus simple à lire.
+
+
+indeed, we can see that this new column is of type factor.
+So, now we can make a descending bar chart that is much easier to read.
+
+```{r}
+ggplot(word_counts,aes(x=word2, y=n))+geom_col()+coord_flip()+ggtitle("Review Word Counts")
+```
+
+Nous allons souvent comparer deux ou plusieurs sous ensembles de données dans le même graphique.
+Rappelez vous dans notre jeu de données nous avons deux produits, cela peut être intéressant de visualiser le nombre de mots par produit.
+Au lieu de compter simplement les mots, nous incluons à la fois le mot et le Produit dans la fonction count().
+
+
+
+We will often compare two or more subsets of data in the same graph.
+Remember in our dataset we have two products, it can be interesting to visualize the number of words per product.
+Instead of just counting words, we include both the word and the Product in the count () function.
+```{r}
+tidy_review %>%
+  count(word, Product)%>%
+  arrange(desc(n))
+```
+Avant de tracer un graphique, nous devons concerver que les mots courants pour chacun des produits.
+Nous avons groupé par produit, et nous avons indiqué à top_n les 10 premiers mots les plus courrants.
+
+
+Before drawing a graph, we need to keep only the common words for each of the products.
+We've grouped by product, and we've given top_n the top 10 most common words.
+```{r}
+test1<-tidy_review %>%
+  count(word, Product)%>%
+  group_by(Product)%>%
+  top_n(10,n)
+test1
+```
+Avant de pouvoir créer un facteur 
+
+Before you can create a factor
+```{r}
+tidy_review %>%
+  count(word, Product)%>%
+  group_by(Product)%>%
+  top_n(10,n)%>%
+  ungroup()
+
+```
+
+```{r}
+word_counts <-tidy_review %>%
+  count(word, Product)%>%
+  group_by(Product)%>%
+  top_n(10,n)%>%
+  ungroup()%>%
+  mutate(word2=fct_reorder(word,n))
+```
+
+
+
+```{r}
+ggplot(word_counts, aes(x=word2, y=n, fill= Product))+geom_col(show.legend=FALSE)+facet_wrap(~ Product, scales="free_y")+coord_flip()+ggtitle("Review Word Counts")
+```
+
+
+
+Revenons un pas en arrière. 
+rappelez vous,les données de tidy_review ont été tokénisés, et les mots vides supprimés.
+Première chose que nous souhaitons faire est de calculer le nombre de mots. Ici, nous incluons dans la fonction count, le nombre de mots dans chaque produits. Ainsi nous pouvons les arrager dans l'ordre décroissant:
+
+
+
+Let us take a step back.
+remember, the data in tidy_review has been tokenized, and stopwords removed.
+First thing we want to do is calculate the number of words. Here, we include in the count function, the number of words in each product. So we can arrange them in descending order:
+```{r}
+tidy_review %>%
+  count(word, Product)%>%
+  arrange(desc(n))
+```
+Ensuite, avant de tracer, nous avons inclus la fonction top_n() afin de ne concerver que les mots les plus courants pour chacun des produits.
+Mais d'abord, nous groupons par produit avec la fonction group_by().
+
+
+
+Then, before plotting, we have included the top_n () function in order to keep only the most common words for each of the products.
+But first, we group by product with the group_by () function.
+```{r}
+tidy_review %>%
+  count(word, Product)%>%
+  group_by(Product)%>%
+  top_n(10,n)
+
+```
+Avant de pouvoir créer un facteur de mots ordonné par les nombre, nous devons utiliser la fonction ungroup()
+
+Before we can create a number ordered word factor, we need to use the ungroup () function
+# Ploting word clouds 
+
+Les graphiques barres sont probablement le moyen le plus efficace de visualiser le nombre de mots.
+Parfois, on a besoin de quelque chose d'un peu plus évocateur.
+Très souvent quand on fait une analyse de texte, tout le monde va supposer probablement que vous savez comment créer des nuages de mots.
+
+Première chose à faire est de charger la librairie Wordcloud.
+
+
+Bar charts are probably the most efficient way to visualize word counts.
+Sometimes you need something a little more evocative.
+Quite often when doing text analysis, everyone is probably going to assume that you know how to create word clouds.
+
+First thing to do is load the Wordcloud library.
+
+```{r}
+library(wordcloud2)
+```
+
+Cette librairie ne fait pas partie de tidyvers et n'adhère pas au principe des données bien rangées.
+
+Dans un premier temps, nous allons calculer le nombre de mots en utilisant nos données tidy_review déjà nettoyées.
+Rappelez vous la sortie est un bloc de données avec deux colonnes : mot et n 
+
+
+This library is not part of tidyvers and does not adhere to the principle of tidy data.
+
+First, we'll calculate the word count using our already cleaned up tidy_review data.
+Remember the output is a block of data with two columns: word and n
+
+```{r}
+word_counts <- tidy_review %>%
+  count(word)
+```
+
+La fonction wordcloud n'adhère pas aux principes des données bien rangées, nous utilisons la syntaxe de base de R, $
+
+
+The wordcloud function does not adhere to the principles of tidy data, we use the basic syntax of R, $
+
+```{r}
+word_counts <- tidy_review %>%
+  count(word)
+#  top_n(50,n)
+
+#wordcloud2(word_counts)
+wordcloud(words = word_counts$word,freq = word_counts$n,max.words = 70, colors = blues9)
+```
+
+
+```{r}
+word_counts <- tidy_review %>%
+  count(word)%>%
+  top_n(50,n)
+
+wordcloud2(word_counts)
+#wordcloud2(words = word_counts$word,freq = word_counts$n,max.words = 30)
+```
+Remarque, à chaque appel de fonction wordcloud, la disposition des mots change, c'est un processus randomisé.
+
+Note, with each wordcloud function call, the word layout changes, this is a randomized process.
+# Sentiment dictonaries 
+Dans ce chapitre, nous allons au dela du seul nombre de mots pour analyser le sentiment.
+La façon la plus simple de mener une analyse des sentiments est d'utiliser un lexique ou un dictionnaire des sentiments existant.
+
+
+Le package tidytext comprend quatre sentiments distincts accessible avec la fonction get_sentiment().
+Le seul argument est le nom du dictionnaire.
+
+
+
+In this chapter, we go beyond just word count to analyze sentiment.
+The easiest way to conduct sentiment analysis is to use an existing sentiment lexicon or dictionary.
+
+
+The tidytext package includes four distinct feelings accessible with the get_sentiment () function.
+The only argument is the name of the dictionary.
+
+```{r}
+get_sentiments("bing")
+```
+Comme vous pouvez le voir, le dictionnaire bing est u tibble avec deux colonnes: word et sentiment
+
+Si nous souhaitons connaitre le nombre de mots négatifs et positifs, nous savons le faire maintenant :
+
+
+As you can see, the bing dictionary is u tibble with two columns: word and sentiment
+
+If we want to know the number of negative and positive words, we know how to do it now:
+```{r}
+get_sentiments("bing")%>%
+  count(sentiment)
+
+```
+
+Le deuxième dictionnaire est "afinn", ici au lieu que chaque mot soit marqué comme négatif ou positif, ils reçoivent un score numérique, avec un score négatif pour le sentiment négatif et un score positif pour le sentiment positif 
+
+
+The second dictionary is "Afinn", here instead of each word being marked as negative or positive they are given a numerical score, with a negative score for negative sentiment and a positive score for positive sentiment
+```{r}
+library(textdata)
+```
+
+```{r}
+get_sentiments("afinn")
+```
+Nous résumons le dictionnaire "afinn" en caclulant les valeurs min et max.
+
+We summarize the dictionary "Afinn" by calculating the min and max values.
+```{r}
+get_sentiments("afinn")%>%
+summarize(min=min(value), max=max(value))
+```
+
+Le dernier dictionnaire que nous allons utiliser ici est "lougran" .
+Nous résumons ce dictionnaire en utilisant count(), mutate et fct_reorder()
+.
+
+The last dictionary we are going to use here is "lougran".
+We summarize this dictionary using count (), mutate and fct_reorder ().
+```{r}
+sentiment_counts <-get_sentiments("loughran")%>%
+  count(sentiment)%>%
+  mutate(sentiment2 = fct_reorder(sentiment, n))
+ggplot(sentiment_counts, aes(x=sentiment2, y=n))+geom_col()+coord_flip()+labs(title= "Sentiment counts in Loughran", x= "Counts", y= "Sentiments")
+```
+Comme on peut le remarquer, ce dictionnaire n'a pas que des sentiments positifs et négatifs, on trouve également d'autres sentiments pour marquer chaque mot.
+Même si, ce dictionnaire est composé d'un nombre important de sentiment négatif, on trouve également des sentiments intéressants comme "litigious", "uncerainty"..
+
+Ces dictionnaires ont été minitieusement créer, savoir lequel utiliser dépendra de votre texte.
+
+Nous allons explorer maintenant le dictionnaire "nrc" également de la librairie tidytext.
+
+
+As can be seen, this dictionary does not only have positive and negative feelings, there are also other feelings to mark each word.
+Even if, this dictionary is composed of a large number of negative feelings, we also find interesting feelings like "litigious", "uncerainty" ..
+
+These dictionaries have been carefully created, knowing which one to use will depend on your text.
+
+We are now going to explore the "nrc" dictionary also from the tidytext library.
+```{r}
+# Load the tidyverse and tidytext packages
+library(tidyverse)
+library(tidytext)
+# Count the number of words associated with each sentiment in nrc
+get_sentiments("nrc") %>% 
+  count(sentiment) %>% 
+  # Arrange the counts in descending order
+  arrange(desc(n))
+
+```
+
+
+
+```{r}
+# Pull in the nrc dictionary, count the sentiments and reorder them by count
+sentiment_counts <- get_sentiments("nrc") %>% 
+  count(sentiment) %>% 
+  mutate(sentiment2 = fct_reorder(sentiment, n))
+
+# Visualize sentiment_counts using the new sentiment factor column
+ggplot(sentiment_counts, aes(x = sentiment2, y = n)) +
+  geom_col() +
+  coord_flip() +
+  # Change the title to "Sentiment Counts in NRC", x-axis to "Sentiment", and y-axis to "Counts"
+  labs(
+    title = "Sentiment Counts in NRC",
+    x = "Sentiment",
+    y = "Counts"
+  )
+```
+
+Avec 4 dictionnaires de sentiments nous pouvons miantenant avoir du matériel pour travailler.
+Cependant, les dictionnaires a eux seules ne nous apportent pas grand chose. Nous devons d'abord ajouter un dictionnaire de sentiments à nos données texte tokenisées et netoyées.
+
+Pour ajouter un dictionnaire des sentiments à notre jeu de données, nous devons utiliser une autre des fonctions de jointure de dplyr inner_join().
+
+ici, inner_join() va faire correspondre pour chaque mo un sentiment.
+
+
+With 4 dictionaries of feelings we can now have material to work on.
+However, dictionaries alone don't do much for us. First we need to add a sentiment dictionary to our tokenized and cleansed text data.
+
+To add a dictionary of sentiments to our dataset, we need to use another of the dplyr inner_join () join functions.
+
+here, inner_join () will match a sentiment for each mo.
+
+```{r}
+tidy_review%>%
+  inner_join(get_sentiments("loughran"))
+```
+
+Ce que nous pouvons remarquer est que le bloc de données est beaucoup moins important puisque inner_join() va joindre les correspondances entre le dictionnaire et notre jeu de données.
+Maintenant que nous avons résumé le contenu émotionnel du document de la manière que nous souhaitons, nous pouvons maintenant compter la prévalence de chaque sentiment 
+
+
+
+What we can notice is that the dataset is much smaller since inner_join () will join the matches between the dictionary and our dataset.
+Now that we have summarized the emotional content of the document in the way we want, we can now count the prevalence of each sentiment.
+
+```{r}
+sentiment_review<-tidy_review%>%
+  inner_join(get_sentiments("loughran"))
+sentiment_review %>%
+  count(sentiment)
+```
+
+Nous pouvons également compter à la fois par mot et par sentiment pour trouver quels mot sont utilisés le plus souvent pour chaque sentiment.
+
+
+
+Nous pouvons également compter à la fois par mot et par sentiment pour trouver quels mot sont utilisés le plus souvent pour chaque sentiment.
+```{r}
+sentiment_review %>%
+  count(word,sentiment)%>%
+  arrange(desc(n))
+```
+
+On peut remarquer que easy qui a un sentiment positif le plus utilisé et trouble est le mot négatif le plus utilisé.
+ 
+We can notice that easy, which has a positive feeling the most used and cloudy, is the negative word the most used.
+#Visualizing sentiment
+Imaginons que nous souhaitons visualiser les mots les plus courants uniquement pour les sentiments positifs et négatifs.
+Nous utilisons ici %in% et la c() fonction pour combiner les sentiments que nous voulons concerver.
+Nous pouvons ainsi appliquer ce que nous avons appris ici avec group_by(), count(), top_n, ungroupe() et mutate pour trouver les 10 premiers mots positifs et négatifs dans l'ordre.
+
+
+Say we want to visualize the most common words just for positive and negative feelings.
+Here we use% in% and the c () function to combine the feelings we want to maintain.
+So we can apply what we learned here with group_by (), count (), top_n, ungroupe () and mutate to find the first 10 positive and negative words in order.
+```{r}
+sentiment_review2 <- sentiment_review %>%   
+  filter(sentiment %in% c("positive", "negative"))
+word_counts <- sentiment_review2 %>% 
+  count(word, sentiment) %>%   
+  group_by(sentiment) %>% 
+  top_n(10, n) %>%  
+  ungroup() %>%  
+  mutate(word2 = fct_reorder(word, n))
+
+```
+
+Nous pouvons ainis visualiser ces 10 premiers mpts positifs et négatifs en utilisant facet_wrap().
+Nous pouvons scale = "free" ce qui permet à chque axes de se caler selon ses données (je vous invite à tester avec free_x et free_y pour observer les différences).
+On a également utilisé une autre fonction lags au lieu de ggtitle ce qui va nous permettre de changer le titre et les titres des axes en même temps.
+
+
+
+We can thus visualize these first 10 positive and negative mpts using facet_wrap ().
+We can scale = "free" which allows each axis to be calibrated according to its data (I invite you to test with free_x and free_y to observe the differences).
+We also used another lags function instead of ggtitle which will allow us to change the title and the axis titles at the same time.
+```{r}
+ggplot(word_counts, aes(x = word2, y = n, fill = sentiment)) +  geom_col(show.legend = FALSE) +  facet_wrap(~ sentiment, scales = "free") +  coord_flip() +  labs( title = "Sentiment Word Counts", x = "Words" )
+
+```
+On peut remarquer que les mots négatifs permettent d'exprimer les difficultés de nettoyage tandis que les mots positifs décrivent les réactions à la performance.
+
+
+Nous allons maintenant parcourir quelques fonctions qui seront particulièrement utiles pour améliorer vos analyses de sentiments.
+
+Note that negative words can express cleaning difficulties while positive words describe reactions to performance.
+
+
+We will now go through some functions that will be particularly useful in improving your sentiment analyzes.
+
+# Count sentiment by rating
+Dans nos données tidy_review, nous avons une étoire pour chaque avis.
+Nous allons utiliser la fonction inner_join() pour ajouter le dictionnaire bing.
+Nous pouvons ainsi compter la fréquence à laquelle chaque sentiment apparait avec chaque étoile.
+Mais qu'en est-il de la différence entre le nombre de mots positifs et négatifs pour chaque classement par étoile ?
+Suivant les principes d'un bloc de données bien rangé, le sentiment et le nombre sont en deux colonnes ici, ce qui signifie que pour chaque note de 1 à 5, nous avons deux rangées, une pour chaque sentiment et nombre.
+
+
+
+In our tidy_review data, we have a table for each review.
+We will use the inner_join () function to add the bing dictionary.
+We can thus count the frequency with which each feeling appears with each star.
+But what about the difference between the number of positive and negative words for each star rating?
+Following the principles of a tidy block of data, sentiment and number are in two columns here, which means for each rating from 1 to 5 we have two rows, one for each sentiment and number.
+```{r}
+ tidy_review %>%   
+  inner_join(get_sentiments("bing"))%>%
+  count(Stars, sentiment)
+```
+Cela rend difficile le calcul de la différence entre le sentiment positif et le négatif pour chaque classement par étoile.
+Il existe une fonction spécialement conçue pour ce type de problème spread() . cette fonction vient du package tidyr
+
+
+This makes it difficult to calculate the difference between positive and negative sentiment for each star rating.
+There is a function specifically designed for this type of spread () problem. this function comes from the tidyr package
+
+
+#Using spread()
+Cette fonction prend deux arguments, la colonne sentiment (la variable que nous souhaitons comptabiliser) et n la variable avec les valeurs correspondantes.
+
+
+Cette fonction prend deux arguments, la colonne sentiment (la variable que nous souhaitons comptabiliser) et n la variable avec les valeurs correspondantes.
+```{r}
+tidy_review %>%   
+inner_join(get_sentiments("bing")) %>%   
+  count(Stars, sentiment) %>%   
+  spread(sentiment, n)
+
+```
+Nous pouvons remarquer que nous avons réparti l'ancienne colonne de sentiment en deux colonnes: positive et négative.
+Il y a ici pour chaque étoile une seule ligne avec sentiment négatif et positif.
+
+
+We can notice that we have split the old sentiment column into two columns: positive and negative.
+There is here for each star only one line with negative and positive sentiment.
+#Computing overall sentiment 
+Maintenant que nous avons organisé notre jeu de données, nous pouvons ajouter la fonction mutate qui permet d'ajouter une colonne avec la différence entre le mositif et le négatif.
+
+
+Now that we have organized our dataset, we can add the mutate function which allows to add a column with the difference between positive and negative.
+```{r}
+tidy_review %>%   
+  inner_join(get_sentiments("bing")) %>%   
+  count(Stars, sentiment)%>%   
+  spread(sentiment, n) %>% 
+  mutate(overall_sentiment = positive - negative)
+```
+
+
+# Visualize sentiment by rating 
+
+
+```{r}
+ggplot(sentiment_stars,aes(x = Stars, y = overall_sentiment, fill =as.factor(Stars))) +  geom_col(show.legend = FALSE) +  coord_flip() +  labs(title = "Overall Sentiment by Stars", subtitle = "Reviews for Robotic Vacuums", x = "Stars", y = "Overall Sentiment"  )
+
+```
+

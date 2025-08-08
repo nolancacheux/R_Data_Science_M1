@@ -1,0 +1,388 @@
+---
+title: "NASA Dashboard"
+author: "Feryal WINDAL"
+date: "11/5/2023"
+output: html_document
+---
+# 1. Introduction to the NASA fireball data set
+
+Having grasped the fundamentals, we're now ready to delve into a case study. You have been granted access to a NASA dataset that chronicles observations of fireballs—essentially, extremely luminous meteors. I will briefly introduce you to the dataset, providing an overview of its structure. Subsequently, you'll have the opportunity to conduct your own exploration.
+
+# 2. Data Background
+
+This dataset originates from NASA's Center for Near-Earth Object Studies. Fireballs are, in essence, extraordinarily bright meteors, also known as shooting stars. The United States maintains a network of sensors capable of detecting these phenomena in the sky. These sensors contribute to a dataset that is accessible to the public, and from which we have extracted a segment specifically for this course. Should you wish to deepen your understanding of fireballs, NASA's Center for Near-Earth Object Studies offers a wealth of information on their website.
+
+Visit for more information:  https://cneos.jpl.nasa.gov/fireballs/intro.html
+
+# 3. Variables
+
+The dataset comprises nine variables:
+
+Date: The observation date of the fireball (type: date)
+Energy: The total radiated energy of the fireball, measured in joules (type: numeric)
+Impact_E: The total impact energy (type: numeric)
+Lat: The latitude where the fireball was observed
+Lat_Dir: The directional latitude, indicating either North or South
+Lon: The longitude where the fireball was observed
+Lon_Dir: The directional longitude, indicating either East or West
+Alt: The altitude of the fireball, provided in kilometers
+Vel: The velocity of the fireball, expressed in kilometers per second
+Each variable provides insight into the characteristics and impact of the fireball events recorded in the dataset.
+
+# Practice 
+
+## Examine the variables in the data set
+For the following exercises we are using the nasa_fireball data, a data set of reported fireball events. Explore the variables in this data set. The nasa_fireball data frame is already loaded.
+
+Print the nasa_fireball data frame.
+Examine the types of variables present by sapply()-ing class().
+Observe the number of observations in this data frame using nrow().
+Check which columns, if any, contain missing data by sapply()-ing anyNA().
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(shiny)
+library(shinydashboard)
+```
+
+```{r}
+nasa_fireball <-read.csv("cneos_fireball_data.csv")
+```
+
+
+```{r}
+# Print the nasa_fireball data frame
+___
+
+# Examine the types of variables present
+___
+
+# Observe the number of observations in this data frame
+___
+
+# Check for missing data
+___
+```
+
+
+
+## Create a value box for the maximum velocity
+Now you can begin building your dashboard! First, create a value box for the maximum velocity of a fireball at peak brightness (the variable vel in your nasa_fireball data frame). There are many ways to find the maximum value in R; be sure to remove NA values when doing so.
+
+Find the maximum velocity and save it as an object called max_vel.
+Create a value box with the value equal to max_vel, subtitle "Maximum pre-impact velocity", and "fire" icon.
+Run the shiny dashboard to view your work.
+
+```{r}
+max_vel <- ___
+
+body <- dashboardBody(
+  fluidRow(
+    # Add a value box for maximum velocity
+    ___
+  )
+)
+ui <- dashboardPage(header = dashboardHeader(),
+                    sidebar = dashboardSidebar(),
+                    body = body
+                    )
+shinyApp(ui, server)
+
+```
+
+## Create a value box for the maximum impact
+Let's add another value box for the maximum log total impact energy. The variable in the nasa_fireball data frame corresponding to this is impact_e. The nasa_fireball data frame is again already loaded.
+
+Find the maximum impact and save it as an object called max_impact_e.
+Create a value box with the value equal to max_impact_e, subtitle "Maximum impact energy (kilotons of TNT)", and the "star" icon.
+Rerun the shiny dashboard to view your work.
+
+```{r}
+max_impact_e <- ___
+
+body <- dashboardBody(
+  fluidRow(
+    # Add a value box for maximum impact
+    ___,
+    valueBox(
+      value = max_vel,
+      subtitle = "Maximum pre-impact velocity", 
+      icon = icon("fire")
+    )
+  )
+)
+
+ui <- dashboardPage(header = dashboardHeader(),
+                    sidebar = dashboardSidebar(),
+                    body = body
+                    )
+shinyApp(ui, server)
+```
+
+
+
+## Create a value box for the maximum energy
+Let's create a third value box for the maximum total optical radiated energy. The variable for this in the nasa_fireball data frame is energy. 
+
+Find the maximum energy and save it as an object called max_energy.
+Create a value box with the value equal to max_energy, subtitle "Maximum total radiated energy (Joules)", and the "lightbulb-o" icon.
+Rerun the shiny dashboard to view your work.
+
+```{r}
+max_energy <- ___
+
+body <- dashboardBody(
+  fluidRow(
+    # Add a value box for maximum energy
+    ___,
+    valueBox(
+      value = max_impact_e, 
+      subtitle = "Maximum impact energy (kilotons of TNT)",
+      icon = icon("star")
+    ),
+    valueBox(
+      value = max_vel,
+      subtitle = "Maximum pre-impact velocity", 
+      icon = icon("fire")
+    )
+  )
+)
+
+ui <- dashboardPage(header = dashboardHeader(),
+                    sidebar = dashboardSidebar(),
+                    body = body
+                    )
+shinyApp(ui, server)
+```
+
+
+## Make the value boxes dynamic
+The data frame contains the latitude and longitude of the location of the fireballs. Begin to build a dynamic value box containing the number of fireballs in the US. The approximate range of latitude for US cities is 19.5 to 64.9 and the range for longitude is -161.8 to -68.0. Count the number of fireballs in the current data frame that fall within this range. This count can be obtained a variety of ways in R. You may use the code below, or write you own and check it with the one provided.
+```{r}
+n_us <- sum(
+  ifelse(
+    nasa_fireball$lat < 64.9 & nasa_fireball$lat > 19.5
+      & nasa_fireball$lon < -68.0 & nasa_fireball$lon > -161.8,
+    1, 0),
+  na.rm = TRUE)
+```
+
+Then use the color parameter such that if n_us is less than 10, the value box is blue, otherwise it is fuchsia. The following logic can be used to determine the color.
+```{r}
+if (n_us < 10) {
+  "blue"
+} else {
+  "fuchsia"
+}
+```
+
+Create the object n_us indicating how many fireballs have landed in the US. You can use the code provided in the first chunk above to do this.
+Create a dynamic value box using renderValueBox() and valueBox() with n_us as the value, "Number of Fireballs in the US" as the subtitle, and the "globe" icon.
+Add the parameter color to the value box, if the number of fireballs in the US is less than 10, make it "blue", otherwise make it "fuchsia".
+Rerun the shiny dashboard to view your work.
+
+```{r}
+n_us <- ___
+  
+server <- function(input, output) {
+  output$us_box <- ___
+}
+
+body <- dashboardBody(
+  fluidRow(
+    valueBoxOutput(___)
+  )
+)
+ui <- dashboardPage(header = dashboardHeader(),
+                    sidebar = dashboardSidebar(),
+                    body = body
+                    )
+shinyApp(ui, server)
+```
+
+
+
+## Allow the user to input an alert threshold
+Perhaps the people using your application would rather have a different threshold for changing the color of your value box. Create a slider in the sidebar to allow the user to input the threshold for the value box color.
+
+Create a slider in the sidebar to allow the user to input the threshold for the value box color. This should have the following parameters:
+inputId: "threshold", label: "Color Threshold", min: 0, max: 100, value: 10.
+Update the server to include the user's input.
+Rerun the application with these changes.
+
+
+```{r}
+sidebar <- dashboardSidebar(
+  ___
+)
+
+server <- function(input, output) {
+  output$us_box <- renderValueBox({
+    valueBox(
+      value = n_us,
+      subtitle = "Number of Fireballs in the US",
+      icon = icon("globe"),
+      color = if (n_us < ___) {
+                "blue"
+              } else {
+              "fuchsia"
+              }
+    )
+  })
+}
+
+
+ui <- dashboardPage(header = dashboardHeader(),
+                    sidebar = sidebar,
+                    body = body
+                    )
+shinyApp(ui, server)
+```
+
+ 
+In our Shiny application, we are starting with a pre-downloaded, static dataset named nasa_fireball. Although static for our current use, this dataset has the potential to be dynamic if we were to retrieve it regularly from NASA's API, for example, on a daily basis. For our app to reflect such live updates, we'd implement dynamic content updating mechanisms within Shiny.
+
+A quick review of dynamic content in Shiny reveals two pivotal types of functions: render functions, which are declared within the server block and are responsible for processing data, and output functions, which are placed within the UI (User Interface) definition and are tasked with displaying the processed data to the user.
+
+Moving on to the integration of interactive maps, htmlwidgets offer a powerful way to embed such interactivity into dashboards. An outstanding example of an htmlwidget is the Leaflet map widget, which can be used to create compelling visualizations of geospatial data. You won't need to dive deep into the entire Leaflet package to get started; the essential functions to recognize are renderLeaflet() for the server side and leafletOutput() for the UI side. These functions conform to the standard pattern of render and output functions in Shiny.
+
+Within the renderLeaflet() function, you'll construct the map by chaining together a series of function calls using pipes. The Leaflet package itself provides the pipe operator, so there's no need for additional libraries. Starting with a call to leaflet(), which initializes an empty map, you can then pipe in the addTiles() function to overlay the map with tiles.
+
+You're not limited to a base map, though. By adding more layers with your data, such as using the addMarkers() function, you can pinpoint locations on the map—like plotting each fireball event with longitude and latitude coordinates. This would vividly illustrate the distribution of fireball occurrences on the globe."
+
+### example 
+```{r}
+leaflet() %>%
+  addTiles() %>%  
+  addCircleMarkers(
+    lng = -95.3698,  # Coordonnées de test pour Houston, TX
+    lat = 29.7604,
+    radius = 10,
+    popup = "Houston, TX"
+  )
+```
+
+  
+  
+## Create a dynamic plot of the location of fireballs
+Rather than just examining how many fireballs have landed in the United States, you can plot each of the fireballs on a map! Here is some example code, for an example data set named df we can plot the fireball incidents as circles with the radius of the circle based on the velocity.
+```{r}
+ output$plot <- renderLeaflet({
+    leaflet() %>%
+      addTiles() %>%  
+      addCircleMarkers(lng = df$lon, lat = df$lat, radius = df$vel, label = df$date, weight = 3)
+    })
+```
+
+This code belongs in the server function. Using code similar to that above with the nasa_fireball data frame, create a plot of the fireball events with the radius equal to the log of the impact energy. To remove any warnings, I have subset the nasa_fireball data frame to remove any rows missing latitude or longitude.
+
+Create a leaflet plot with circle markers, setting the radius of the circles equal to 
+log(nasa_fireball\$impact_e), the label set to nasa_fireball$date, and a weight of 2.
+Output the plot in the body.
+Run the application to view your changes.
+```{r}
+library("leaflet")
+
+server <- function(input, output) {
+  output$plot <- ___
+}
+
+body <- dashboardBody( 
+ leafletOutput(___)
+)
+
+ui <- dashboardPage(
+  header = dashboardHeader(),
+  sidebar = dashboardSidebar(),
+  body = body
+)
+
+shinyApp(ui, server)
+```
+
+```{r}
+library("leaflet")
+
+server <- function(input, output) {
+  output$plot <- renderLeaflet({
+    leaflet() %>%
+      addTiles() %>%  
+      addCircleMarkers(
+        lng = nasa_fireball$lon,
+        lat = nasa_fireball$lat, 
+        radius = log(nasa_fireball$impact_e), 
+        label = nasa_fireball$date, 
+        weight = 2)
+    })
+}
+
+body <- dashboardBody( 
+ leafletOutput("plot")
+)
+
+ui <- dashboardPage(
+  header = dashboardHeader(),
+  sidebar = dashboardSidebar(),
+  body = body
+)
+
+shinyApp(ui, server)
+```
+
+## Update the look of your new application
+Now let's put it all together. You have created an application for viewing fireball locations. The full application is shown in the sample code. Update the skin of the dashboard page to a color of your choosing.
+
+Update the skin of the dashboard page.
+Rerun the application to view this change.
+
+```{r}
+
+server <- function(input, output) {
+  output$plot <- renderLeaflet({
+    leaflet() %>%
+      addTiles() %>%  
+      addCircleMarkers(
+        lng = nasa_fireball$lon,
+        lat = nasa_fireball$lat, 
+        radius = log(nasa_fireball$impact_e), 
+        label = nasa_fireball$date, 
+        weight = 2)
+    })
+}
+
+body <- dashboardBody(
+ fluidRow(
+    valueBox(
+      value = max_energy, 
+      subtitle = "Maximum total radiated energy (Joules)", 
+      icon = icon("lightbulb-o")
+    ),
+    valueBox(
+      value = max_impact_e, 
+      subtitle = "Maximum impact energy (kilotons of TNT)",
+      icon = icon("star")
+    ),
+    valueBox(
+      value = max_vel,
+      subtitle = "Maximum pre-impact velocity", 
+      icon = icon("fire")
+    )
+  ),
+  fluidRow(
+    leafletOutput("plot")
+  )
+)
+
+
+ui <- dashboardPage(
+  skin = ___,
+  header = dashboardHeader(),
+  sidebar = dashboardSidebar(),
+  body = body
+)
+
+shinyApp(ui, server)
+```
+

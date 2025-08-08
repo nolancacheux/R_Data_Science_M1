@@ -1,0 +1,239 @@
+---
+title: "Shiny-COURSE-PART-2"
+author: "Feryal WINDAL"
+date: "11/5/2023"
+output: html_document
+---
+# Introduction to Shinydashboard
+
+We are going to build our very first complete Shiny dashboard. This process involves assembling a user interface composed of three main parts: a header, a sidebar, and a body, all combined within the dashboardPage and assigned to the ui variable. The next step is to set up the server side, where we define outputs and their interaction with user inputs, akin to a server who takes orders and delivers dishes to the table. The shinyApp function is then used to connect the UI and the server.
+
+```{r}
+header <- dashboardHeader(title="the first dashboard")
+sidebar <- dashboardSidebar(...)
+body <- dashboardBody(...)
+ui <- dashboardPage(header,                    
+                    sidebar, body)
+server <-function(input, output){  ...}
+shinyApp(ui, server)
+
+```
+
+## Server Configuration
+
+In the server part of a Shiny application, we specify our outputs and how they will respond to inputs. While outputs can be defined directly within the server function, creating separate helper functions for them makes the setup cleaner and more organized. These functions should be defined right after library imports in our script.
+
+## Adding a Chart
+
+Let's add a chart to our dashboard for a global soccer tournament. Specifically, a hexbin chart showing the distributions of passes and goals by a team. We use the geom_hex function from ggplot2 and set it as an output in the server to display it on the dashboard. If we want to depict data for a second team, we can do so by introducing an input to select the team and conditionally rendering the respective charts.
+Creating ggplot Objects in the Server
+
+
+# Exercise
+
+```{r}
+library(tidyverse)
+soccer <-read_csv("soccer18-19.csv")
+```
+
+
+```{r}
+
+head(soccer)
+```
+
+```{r}
+p<-soccer %>%  
+  ggplot(aes(x=`FTHG`,y=`HTR`)) +  
+  geom_hex(bins=10) + 
+  theme_classic()
+
+p
+```
+# Header and side bar settings
+Suppose you are working for an apparel company. Since a global soccer tournament has just concluded, your company wants to produce football apparel. To catch the attention of potential customers, the company needs to be in touch with the fan base.
+
+You have been tasked to create a dashboard to help the company make better design decisions, based on the following:
+
+Some details for each match
+Total number of goals scored for each team
+Total number of yellow/red cards given to each team
+
+
+```{r}
+
+header <- dashboardHeader(title = "Soccer tournament")
+
+sidebar <- dashboardSidebar(
+  # Set up the sidebarMenu
+  ___(
+    # First menu item
+    ___("Matches", tabName = "matchtab", icon = icon("futbol")), 
+    # Second menu item
+    ___(___, tabName = ___, icon = icon("chart-line")) 
+  )
+)
+```
+
+# The body, and completing the UI
+You have set up the header and sidebar Now, you can set up the body.
+
+This is a crucial part of the wireframing process, since it will help you decide where to position your outputs and inputs in their desired positions within the main body of the dashboard.
+
+In this exercise, you will place several outputs and inputs in the dashboard. In doing so, you will obtain all three components of the user interface, which will be put together in dashboardPage().
+
+Set the second tab name to "statstab", and place a tabBox() containing three sub tabs called "Goals", "Yellow cards" and "Red cards".
+
+```{r}
+header <- dashboardHeader(title = "Soccer tournament")
+
+sidebar <- dashboardSidebar(
+  sidebarMenu(
+    menuItem("Matches", tabName = "matchtab", icon = icon("futbol")), 
+    menuItem("General statistics", tabName = "statstab", icon = icon("chart-line")) 
+  )
+)
+
+body <- dashboardBody(tabItems(
+  tabItem(tabName = "matchtab", 
+  fluidRow(selectInput("match", "Match number", choices = 1:nrow(soccer))) 
+         ),
+  # See that the second tab should contain three sub-tabs
+  ___(tabName = ___, 
+          ___(tabPanel("Goals"), 
+                 ___("Yellow cards"),
+                 ___(___))
+         )
+))
+ui <- dashboardPage(header, sidebar, body)
+server <- function(input, output){}
+shinyApp(ui, server)
+```
+
+
+Add three infoBoxOutput()s, called "daytime", "venue" and "grp", to the first row of the first page.
+To the second row of the first page, add four valueBoxOutput()s called "team1", "score1", "team2" and "score2".
+
+
+Now that we have the header, side bar and body of the user interface (UI) stored as header, sidebar and body, respectively, place them in dashboardPage() and store the UI as ui.
+
+
+
+# Building your first dashboard
+The data has been stored as a data frame called soccer. There are 3 predefined plots:
+
+goals_plot: The number of goals scored by each team
+yellow_plot, red_plot: The number of yellow/red cards given to each team
+Some custom helper functions are used here:
+
+daytime_fn(): Gets the day & time for a particular match
+venue_fn(): Gets the venue for a particular match
+grp_fn(): Gets the group of the matchup
+team1_fn(), team2_fn(): The names of team 1/2
+score1_fn(), score2_fn(): The number of goals scored by team 1/2
+
+```{r}
+body <- dashboardBody(tabItems(
+  tabItem(tabName = "matchtab", 
+  fluidRow(selectInput("match", "Match number", choices = 1:nrow(soccer)),
+           infoBoxOutput("daytime"), infoBoxOutput("venue"), infoBoxOutput("grp")),
+  fluidRow(valueBoxOutput("team1", width = 3), valueBoxOutput("score1", width = 3), 
+           valueBoxOutput("team2", width = 3), valueBoxOutput("score2", width = 3)),
+  fluidRow(plotOutput("histogram"))),
+  tabItem(tabName = "statstab", 
+          tabBox(tabPanel("Goals", plotOutput("goals", height = "700px")),
+                 tabPanel("Yellow cards", plotOutput("yellow", height = "700px")),
+                 tabPanel("Red cards", plotOutput("red"))))
+))
+
+ui <- dashboardPage(header, sidebar, body)
+
+server <- function(input, output) {
+  # Fill in outputs in first to third rows of the first page
+  output$daytime <- renderInfoBox(infoBox("Day and time", 
+                                          daytime_fn(input$match), 
+                                          icon = icon("calendar"), 
+                                          color = "green"))
+  output$venue <- ___(infoBox("Venue", 
+                                        venue_fn(input$match), 
+                                        icon = icon("map"), 
+                                        color = "green"))
+  output$___ <- ___(___("Group", 
+                                      grp_fn(input$match), 
+                                      color = "green"))
+  output$team1 <- ___(valueBox("Team 1", team1_fn(input$match), color = "blue"))
+  output$score1 <- ___(___("# of goals", score1_fn(input$match), color = "blue"))
+  output$___ <- ___(valueBox("Team 2", team2_fn(input$match), color = "red")) 
+  ___ <- ___(valueBox("# of goals", score2_fn(input$match), color = "red"))
+  output$histogram <- renderPlot(plot_histogram(input$match))
+  # Fill in outputs in the second page
+  output$goals <- ___(goals_plot)
+  output$___ <- ___(yellow_plot)
+  ___ <- ___(red_plot)
+}
+
+# Put the UI and server together
+ui <- dashboardPage(header, sidebar, body)
+server <- function(input, output){}
+shinyApp(ui, server)
+```
+
+
+To simplify your work, I have defined a set of functions that allow you to manipulate the dataset and simplify the coding. In its raw state, this dataset does not easily yield information
+
+```{r}
+daytime_fn <- function(match_number) {
+  soccer %>%
+    filter(row_number() == match_number) %>%
+    pull(Date)
+}
+
+grp_fn <- function(match_number) {
+  soccer %>%
+    filter(row_number() == match_number) %>%
+    pull(Div)
+}
+
+team1_fn <- function(match_number) {
+  soccer %>%
+    filter(row_number() == match_number) %>%
+    pull(HomeTeam)
+}
+
+team2_fn <- function(match_number) {
+  soccer %>%
+    filter(row_number() == match_number) %>%
+    pull(AwayTeam)
+}
+
+score1_fn <- function(match_number) {
+  soccer %>%
+    filter(row_number() == match_number) %>%
+    pull(FTHG)
+}
+
+score2_fn <- function(match_number) {
+  soccer %>%
+    filter(row_number() == match_number) %>%
+    pull(FTAG)
+}
+
+venue_fn <- function(match_number) {
+  # Comme il n'y a pas de colonne 'Venue', nous utilisons 'HomeTeam' comme lieu
+  soccer %>%
+    filter(row_number() == match_number) %>%
+    pull(HomeTeam)
+}
+
+# Cette fonction va créer un histogramme des buts à domicile pour tous les matchs
+plot_histogram <- function() {
+  hist(soccer$FTHG, main = "Histogram of Full Time Home Goals", xlab = "Full Time Home Goals", breaks = 10)
+}
+
+
+```
+
+
+
+
+
